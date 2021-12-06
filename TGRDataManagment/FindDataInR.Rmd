@@ -1,0 +1,106 @@
+---
+title: "Where's my Stuff?"
+author: "Amy Paguirigan"
+date: "12/1/2021"
+output: html_document
+---
+## First install packages
+```{r}
+install.packages(c("remotes"))
+remotes::install_github('FredHutch/tgR.data@v0.0.3')
+remotes::install_github('FredHutch/tgR.data')
+```
+
+## Load Libraries
+```{r}
+library(tgR.data); library(dplyr)
+```
+
+## Set your credentials
+```{r}
+set_credentials("~/github/cred/indexingCreds.R")
+```
+
+## Look for my stuff
+You must choose a bucket to look in, but the more additional information you add to the query, the faster your results will return (which becomes more important the more data you have).
+```{r}
+ourBucket <- "fh-pi-ha-g-eco"
+files <- get_file_metadata(bucket = ourBucket)
+
+bamFiles <- get_file_metadata(bucket = ourBucket, file_type = "bamCramSam")
+```
+
+
+You can then group these files by where they are in the bucket, and find out things like the number of bam files per bucket prefix and how much space they take up.  
+```{r}
+bamFiles %>% group_by(bucket_prefix) %>% summarize(howMany = n_distinct(uuid), howManyGB = sum(size_bytes)/10^9)
+```
+
+## Find data provenance
+Maybe you have selected only a handful of the total data based on their prefix, and then you want to know more about the data provenance for those files.  Note here, shorter, less complex bucket prefixes would be easier to work with.
+```{r}
+coolFiles <- bamFiles %>% filter(grepl("Fred_Hutch_Andrew_Hsieh_WGS_72samples", bucket_prefix))
+dataProv <- get_data_provenance(bucket = coolFiles$bucket_name, prefix = coolFiles$bucket_prefix, uuid = coolFiles$uuid, allowEmpty = T)
+
+withProv <- left_join(coolFiles, dataProv)
+
+write.csv(withProv, "2021-todays-date-AnnotateMeManually.csv", row.names = F)
+```
+
+Then anyone (even non-R users) can provide relevant annotations by adding them to the csv.  OR, you can read in your existing structured metadata here and then merge them and upload them to REDCap. 
+
+```{r}
+newMeta <- read.csv("2021-todays-date-AnnotateMeManually-complete.csv")
+```
+
+Or you can do some of this in R, which is probably best.
+```{r}
+newMeta <- withProv %>% mutate(stage = ifelse(dir_level_1 == "original_files", "raw", 
+                                          ifelse(dir_level_1 == "processed_files", "processed", NA)))
+```
+
+Then commit the new data provenance to REDCap
+```{r}
+commit_data_provenance_batch(newMeta)
+```
+
+
+Ideally datasets that arise from a common original dataset such as a DNA sample that was sequenced, would all have that information coded by using the `dataset_id`.  `dataset_id`s do not have to be unique in REDCap so please be aware if you have already used a particular identifier in your DAG as then you will not be able to tell the difference.  If this is an issue, Amy can edit the REDCap to require that these be unique, but allow you to specify them.  
+
+In this example since you have each sample's data in a directory that is uniquely named for the 72 samples you are supposed to have, you could just set the dataset_ids to be those values in the `dir_level_3` column.  
+```{r}
+length(unique(newMeta$dir_level_3)) == 72
+
+newMeta <- newMeta %>% mutate(dataset_id = dir_level_3)
+commit_data_provenance_batch(newMeta)
+```
+
+
+## For additional metadata to be stored by TGR...
+Now.  Once you have `dataset_id`s for some data that was generated, you can start to provide additional patient, sample, and assay material metadata for that dataset.  Then in the future you can use this `dataset_id` to link files in S3 with data provenance with metadata.  If you want to use the TGR support for this, the `dataset_id`'s need to be unique in the entire Repository system.  
+
+We use a separate REDCap project for this aspect of metadata management.  You'll need to have API tokens for this project as well.  Ask Amy if you need access to the project.  Once you have that token saved as "TGR", then you can include that in your credential file and this will work for you in the future. 
+
+I'll show an example of my own data.
+
+```{r}
+amysFiles <- get_file_metadata(bucket = "fh-pi-paguirigan-a-eco", prefix = "tg", file_type = "bamCramSam")
+onlyOutputs <- amysFiles %>% filter(grepl("TGR-Analyses", object_prefix))
+
+theDataProv <- get_data_provenance(bucket = "fh-pi-paguirigan-a-eco", allowEmpty = T)
+
+withdataProv <- left_join(onlyOutputs, theDataProv)
+
+theAnnotations <- get_dataset_annotations(DAG = "paguirigana", dataset_ids = withdataProv$dataset_id) %>% rename(dataset_id = molecular_id)
+
+
+allTogetherNow <- left_join(withdataProv, theAnnotations)
+```
+
+Now you can sort, filter and group by features of each dataset from patient level all the way down to bioinformatic data provenance. 
+```{r}
+allTogetherNow %>% group_by(genomics_type, diagnosis, workflow_name) %>% 
+  summarise(howManySpecimens = n_distinct(biospecimen_id))
+```
+
+

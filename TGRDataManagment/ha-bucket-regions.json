@@ -1,0 +1,90 @@
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_ONCOPLEX_PROSTATE",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "BROAD/CELLLINE_STRUCTURE",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "BROAD/CTC_SIGMA",
+  "dataAccessGroup": "hag",
+  "cpu": "4"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "BROAD/TCGA",
+  "dataAccessGroup": "hag",
+  "cpu": "4"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "CRPC_10X",
+  "dataAccessGroup": "hag",
+  "cpu": "6"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "CRPC_cfDNA/cfDNA_simulated_mixtures",
+  "dataAccessGroup": "hag",
+  "cpu": "3"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "CRPC_cfDNA/cfDNA_WES_NatCommsPaper",
+  "dataAccessGroup": "hag",
+  "cpu": "3"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_ONCOPLEX_SCHWEIZER",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_ONCOPLEX_SCHWEIZER_CLINICALLY_ABSTRACTED",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_OPXCT",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_OPX_NORMALS",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_PDNAS",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_SPECIAL_CASES",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "UW_OPX_NORMALS",
+  "dataAccessGroup": "hag",
+  "cpu": "2"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "Collaborator_Data/Ha_Hsieh_BladderCancer/Broad_Terra_WGS/Fred_Hutch_Andrew_Hsieh_WGS_72samples/RP-2463",
+  "dataAccessGroup": "hag",
+  "cpu": "6"
+}

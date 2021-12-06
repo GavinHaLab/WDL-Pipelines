@@ -1,0 +1,16 @@
+{
+  "AlignedToUnMappedBam.samplesToUnmap": 
+  [
+    {
+      "sampleName": "",
+      "dataset_id": "",
+      "alignedBam": ""
+    },
+    {
+      "sampleName": "",
+      "dataset_id": "",
+      "alignedBam": ""
+      }
+  ]
+}
+
