@@ -1,0 +1,11 @@
+{
+  "AlignedToUnMappedCram.samplesToUnmap": 
+  [
+    {
+      "sample_name": "FH0729_E_2_A",
+      "dataset_id": "FH0729_E_2_A",
+      "alignedBam": "s3://....bam"
+    }
+  ]
+}
+

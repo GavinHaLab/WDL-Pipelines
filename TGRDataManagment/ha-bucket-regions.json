@@ -87,4 +87,10 @@
   "prefixToIndex": "Collaborator_Data/Ha_Hsieh_BladderCancer/Broad_Terra_WGS/Fred_Hutch_Andrew_Hsieh_WGS_72samples/RP-2463",
   "dataAccessGroup": "hag",
   "cpu": "6"
+},
+{
+  "bucketName": "fh-pi-ha-g-eco",
+  "prefixToIndex": "Collaborator_Data/Broad_Terra/CRPC_patients-pdx_WGS/Gavin_Ha_Fred_Hutch_Prostate_Cancer_WGS_data/RP-2253",
+  "dataAccessGroup": "hag",
+  "cpu": "6"
 }

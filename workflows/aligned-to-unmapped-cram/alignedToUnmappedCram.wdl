@@ -6,7 +6,7 @@ version 1.0
 # a dataset_id via the TGR into the filename for future use. 
 
 struct sampleInformation {
-  String sampleName
+  String sample_name
   String dataset_id
   File alignedBam
 }
@@ -21,13 +21,13 @@ workflow AlignedToUnMappedCram {
 
 scatter (job in samplesToUnmap) {
 
-    String base_file_name = job.sampleName + "_" + job.dataset_id
+    String base_file_name = job.sample_name + "_" + job.dataset_id
 
     call RevertBam {
       input: 
         alignedBam = job.alignedBam,
         base_file_name = base_file_name,
-        sampleName = job.sampleName, 
+        sampleName = job.sample_name, 
         taskDocker = GATKDocker
     }
     call CramABam {
@@ -55,6 +55,7 @@ scatter (job in samplesToUnmap) {
 }
 
 #### TASK DEFINITIONS
+
 task CramABam {
   input {
     File bamtocram
