@@ -8,7 +8,7 @@ version 1.0
 struct sampleInformation {
   String sample_name
   String dataset_id
-  File alignedBam
+  String alignedBam
 }
 workflow AlignedToUnMappedCram {
   input {
@@ -22,10 +22,13 @@ workflow AlignedToUnMappedCram {
 scatter (job in samplesToUnmap) {
 
     String base_file_name = job.sample_name + "_" + job.dataset_id
-
+    call createDownloadCache {
+      input:
+        fileToCache = job.alignedBam
+    }
     call RevertBam {
       input: 
-        alignedBam = job.alignedBam,
+        alignedBam = createDownloadCache.file,
         base_file_name = base_file_name,
         sampleName = job.sample_name, 
         taskDocker = GATKDocker
@@ -56,8 +59,28 @@ scatter (job in samplesToUnmap) {
 
 #### TASK DEFINITIONS
 
-task CramABam {
+
+#### This is much faster for large, many-part files (one part is 5GB, so files need to be >30-40GB for this to become an issue).  
+#### 
+task createDownloadCache {
   input {
+    String fileToCache
+  }
+    String outputFileName = basename(fileToCache)
+  command {
+    set -eo pipefail
+    aws s3 cp --quiet ~{fileToCache} .
+  }
+  runtime {
+    cpu: 12
+    modules: "awscli/2.1.37-GCCcore-10.2.0"
+  }
+  output {
+    File file = "~{outputFileName}"
+  }
+}
+task CramABam {
+  input { 
     File bamtocram
     String base_file_name
     String taskDocker
@@ -70,7 +93,7 @@ task CramABam {
     samtools index -@~{threads-1} ~{base_file_name}.cram
     }
   runtime {
-    docker: taskDocker
+    dockerSL: taskDocker
     cpu: threads
   }
   output {
@@ -90,14 +113,13 @@ task RevertBam {
     set -eo pipefail
     gatk --java-options "-Dsamjdk.compression_level=5 -Xms4g" \
       RevertSam \
-        --INPUT=~{alignedBam} \
-        --OUTPUT=~{base_file_name}.unmapped.bam \
-        --SAMPLE_ALIAS=~{sampleName} 
+        --INPUT ~{alignedBam} \
+        --OUTPUT ~{base_file_name}.unmapped.bam \
+        --SAMPLE_ALIAS ~{sampleName} 
   }
   runtime {
     cpu: 2
-    memory: "32 GB"
-    docker: taskDocker
+    dockerSL: taskDocker
   }
   output {
     File unmappedbam = "~{base_file_name}.unmapped.bam"
@@ -115,14 +137,13 @@ task ValidateCramorBam {
     set -eo pipefail
     gatk --java-options "-Dsamjdk.compression_level=5 -Xms2g" \
       ValidateSamFile \
-        --INPUT=~{unmappedCramorBam} \
-        --MODE=SUMMARY \
-        --IGNORE_WARNINGS=true > ~{base_file_name}.validation.txt
+        --INPUT ~{unmappedCramorBam} \
+        --MODE SUMMARY \
+        --IGNORE_WARNINGS true > ~{base_file_name}.validation.txt
   }
   runtime {
     cpu: 2
-    memory: "4 GB"
-    docker: taskDocker
+    dockerSL: taskDocker
   }
   output {
     File validation = "~{base_file_name}.validation.txt"
