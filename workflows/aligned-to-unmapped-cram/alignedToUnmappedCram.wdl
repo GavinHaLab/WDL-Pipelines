@@ -33,26 +33,37 @@ scatter (job in samplesToUnmap) {
         sampleName = job.sample_name, 
         taskDocker = GATKDocker
     }
+    call AddOrReplaceReadGroups {
+      input: 
+        bam = RevertBam.unmappedbam,
+        libraryName = base_file_name,
+        platformName = "ILLUMINA",
+        platformUnit = job.dataset_id,
+        sampleName = job.sample_name,
+        taskDocker = GATKDocker
+    }
+    call ValidateBam {
+      input: 
+        unmappedBam = AddOrReplaceReadGroups.repairedBam,
+        base_file_name = base_file_name,
+        taskDocker = GATKDocker
+    }
     call CramABam {
       input:
-        bamtocram = RevertBam.unmappedbam,
+        validationResult = ValidateBam.validation,
+        bamtocram = AddOrReplaceReadGroups.repairedBam,
         base_file_name = base_file_name,
         taskDocker = samtoolsDocker,
         threads = 6
-  }
+    }
 
-    call ValidateCramorBam {
-      input: 
-        unmappedCramorBam = CramABam.cram,
-        base_file_name = base_file_name,
-        taskDocker = GATKDocker
-  }
+
  } # End Scatter
   # Outputs that will be retained when execution is complete
   output {
     Array[File] unmappedCram = CramABam.cram
     Array[File] unmappedCramIndex = CramABam.cramIndex
-    Array[File] validation = ValidateCramorBam.validation
+    Array[File] validation = ValidateBam.validation
     }
 # End workflow
 }
@@ -81,6 +92,7 @@ task createDownloadCache {
 }
 task CramABam {
   input { 
+    File validationResult
     File bamtocram
     String base_file_name
     String taskDocker
@@ -126,10 +138,43 @@ task RevertBam {
   }
 }
 
-# Validates cram/bam files for formatting issues. 
-task ValidateCramorBam {
+
+# Updatess read groups and tags if needed
+task AddOrReplaceReadGroups {
   input {
-    File unmappedCramorBam
+    File bam
+    String libraryName
+    String platformName
+    String platformUnit
+    String sampleName
+    String taskDocker
+  }
+    String filename = basename(bam, ".bam")
+  command {
+    set -eo pipefail
+    gatk --java-options "-Dsamjdk.compression_level=5 -Xms1g" \
+      AddOrReplaceReadGroups \
+        --INPUT ~{bam} \
+        --OUTPUT ~{filename}.rgrepaired.bam \
+        --RGLB ~{libraryName} \
+        --RGPL ~{platformName} \
+        --RGPU ~{platformUnit} \
+        --RGSM ~{sampleName}
+  }
+  runtime {
+    cpu: 2
+    dockerSL: taskDocker
+  }
+  output {
+    File repairedBam = "~{filename}.rgrepaired.bam"
+  }
+}
+
+
+# Validates cram/bam files for formatting issues. 
+task ValidateBam {
+  input {
+    File unmappedBam
     String base_file_name
     String taskDocker
   }
@@ -137,7 +182,7 @@ task ValidateCramorBam {
     set -eo pipefail
     gatk --java-options "-Dsamjdk.compression_level=5 -Xms2g" \
       ValidateSamFile \
-        --INPUT ~{unmappedCramorBam} \
+        --INPUT ~{unmappedBam} \
         --MODE SUMMARY \
         --IGNORE_WARNINGS true > ~{base_file_name}.validation.txt
   }

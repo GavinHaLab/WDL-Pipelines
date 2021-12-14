@@ -6,7 +6,7 @@ editor_options:
 ---
 # Install Required Packages
 
-## Installpakcages
+## Install packages
 ```{r}
 remotes::install_github('FredHutch/tgR.data')
 remotes::install_github('FredHutch/fh.wdlR')
@@ -19,7 +19,7 @@ library(jsonlite); library(tidyverse); library(tgR.data); library(aws.s3); libra
 
 # Set Credentials
 ```{r}
-set_credentials(path = "~/github/cred/indexingCreds.R")
+set_credentials(path = "...")
 ```
 
 # Pull S3 Inventory and Annotate
@@ -34,7 +34,7 @@ selectFiles <- bamFiles %>% filter(dir_level_1 == "PDX_mouseSubtraction" & grepl
 
 dataProv <- get_data_provenance(bucket = selectFiles$bucket_name, 
                                 prefix = selectFiles$bucket_prefix, 
-                                uuid = selectFiles$uuid, allowEmpty = F)
+                                uuid = selectFiles$uuid, allowEmpty = T)
 
 monsterMash <- left_join(selectFiles, dataProv)
 
@@ -51,7 +51,7 @@ manifest <- monsterMash %>%
   mutate(sample_name = paste("test", seq(1:nrow(monsterMash)), sep = "-"), alignedBam = paste("s3:/", bucket_name,  object_key, sep = "/")) %>% 
   select(sample_name, dataset_id, alignedBam)
 
-manifest <- manifest[1,]
+manifest <- manifest[1:2,]
 batchFileName <- paste0(format(Sys.Date(), "%Y-%m-%d-"), "batchOfOne.json")
 jsonlite::write_json(manifest, batchFileName, auto_unbox = TRUE)
 
@@ -62,7 +62,7 @@ The framework around the batch file may need additional information provided man
 
 ```{r}
 list.files()
-paramsFile <- ""
+batchFileName <- "2021-12-08-batchOfOne.json"
 wdlFile <- "alignedToUnmappedCram.wdl"
   
 put_object(batchFileName,
@@ -75,20 +75,18 @@ put_object(wdlFile,
           bucket = paste0("fh-pi-paguirigan-a-eco/cromwell-files/Ha/alignedToUnmappedCram/",format(Sys.Date(), "%Y-%m-%d")),
           acl = "bucket-owner-full-control")
 
-
-
 ```
 
 # Submit Job to Cromwell
 Note: setwd to location of workflow files
 ```{r}
-setCromwellURL("gizmok87:46459")
+setCromwellURL("...")
 cromwellValidate(WDL = wdlFile, allInputs = batchFileName)
 
 thisJob <- cromwellSubmitBatch(WDL = wdlFile,
                     Batch = batchFileName,
                     Options = "../../workflow-options/noNewCalls-callcachingOn.json",
-                    Labels = data.frame("workflowType" = "no cache tastk"))
+                    Labels = data.frame("workflowType" = "with fix read groups"))
 thisOne <- thisJob$id; thisOne
 ```
 
