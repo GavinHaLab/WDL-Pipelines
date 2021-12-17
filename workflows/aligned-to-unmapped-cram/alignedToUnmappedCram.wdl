@@ -1,6 +1,4 @@
 version 1.0
-# Note: As of 11/15/21, this still needs to be re-tested with current edits
-
 # This workflow converts an aligned bam into an unmapped cram for storage.
 # Creates unmapped crams with SAMPLE_ALIAS=~{sampleName} but incorporates
 # a dataset_id via the TGR into the filename for future use. 
@@ -10,6 +8,7 @@ struct sampleInformation {
   String dataset_id
   String alignedBam
 }
+
 workflow AlignedToUnMappedCram {
   input {
     Array[sampleInformation] samplesToUnmap
