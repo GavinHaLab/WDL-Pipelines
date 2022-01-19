@@ -1,0 +1,14 @@
+{
+  "AlignedToUnMappedCram.samplesToUnmap": [
+    {
+      "sample_name": "test-1",
+      "dataset_id": "174.1_ps7n_ET2273",
+      "alignedBam": "s3://bucket-name/174.1_ps7n_ET2273_recalibrated.bam"
+    },
+    {
+      "sample_name": "test-2",
+      "dataset_id": "70CR_s7",
+      "alignedBam": "s3://bucket-name/170CR_s7_recalibrated.bam"
+    }
+  ]
+}
