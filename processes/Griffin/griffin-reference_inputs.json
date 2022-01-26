@@ -1,0 +1,6 @@
+{
+  "griffinReferencePrep.ref_fasta": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/Homo_sapiens_assembly38.fasta",
+  "griffinReferencePrep.chrom_sizes": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38.standard.chrom.sizes",
+  "griffinReferencePrep.mappable_regions": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100_minus_exclusion_lists.mappable_regions.hg38.bed",
+  "griffinReferencePrep.read_length": "100"
+}

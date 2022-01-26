@@ -1,0 +1,22 @@
+{
+  "runGriffin.griffinBatch": [
+    {
+      "sample_name": "M00001424",
+      "bam_file": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/cached-inputs/M00001424_M00001424.hg38.recal.bam",
+      "bam_index": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/cached-inputs/M00001424_M00001424.hg38.recal.bai"
+    }
+  ],
+  "runGriffin.griffinReferences": {
+    "excluded_regions": ["/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/encode_unified_GRCh38_exclusion_list.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_alternative_haplotypes.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_fix_patches.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_gaps.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_centromeres.bed"],
+    "mappability_bw": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100.Umap.MultiTrackMappability.bw",
+    "ref_fasta": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/Homo_sapiens_assembly38.fasta",
+    "chrom_sizes": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38.standard.chrom.sizes",
+    "mappable_regions": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100_minus_exclusion_lists.mappable_regions.hg38.bed",
+    "genome_GC_freq_tar": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_genome_GC-freq.tar.gz",
+    "sites_yaml": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/griffin_sites1.yaml"
+  }
+}
