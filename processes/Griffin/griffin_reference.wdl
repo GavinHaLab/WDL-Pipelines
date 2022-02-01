@@ -1,22 +1,17 @@
 version 1.0
-## Griffin workflow reference file preparation for hg38
+## Griffin workflow reference file bundle preparation for hg38
 workflow griffinReferencePrep {
-  input {
-    File ref_fasta
-    File mappable_regions
-    File chrom_sizes
-    Int read_length
-  }
-  Pair[Int, Int] fragment_size_range = (1, 500)
-  #Array[Int] fragment_size = ["1"]
-  String griffinDocker = "vortexing/griffin:v0.1"
-  call createRange {
-    input:
-      fragment_size_range = fragment_size_range
-  }
+  File ref_fasta = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/Homo_sapiens_assembly38.fasta"
+  File chrom_sizes = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38.standard.chrom.sizes"
+  File mappable_regions = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100_minus_exclusion_lists.mappable_regions.hg38.bed"
+  Int read_length = 500
+  String griffinDocker = "vortexing/griffin:v0.8"
+  # call createRange {
+  #   input:
+  #     fragment_size_range = fragment_size_range
+  # }
 
-  scatter (frag in createRange.seq) {
-    #scatter (frag in fragment_size) {
+  scatter (frag in range(read_length)) {
   call calc_GC_frequency {
     input:
       mappable_regions = mappable_regions,
@@ -27,11 +22,13 @@ workflow griffinReferencePrep {
       taskDocker = griffinDocker
   }
   }
+
+  ## Could just concatenate them all into one file in the future, otherwise create a bundle for use as is.
     String regions_name = basename(mappable_regions)
   call createTar {
     input:
       files = calc_GC_frequency.out,
-      tarName = regions_name + ".GC_frequency.tar.gz"
+      tarName = regions_name + ".maxfrag_size." + read_length + ".GC_frequency.tar.gz"
   }
   output {
     File tar = createTar.tar
@@ -47,8 +44,11 @@ task createRange {
     set -eo
     seq ~{fragment_size_range.left} ~{fragment_size_range.right} > sequence.txt
   }
+  runtime {
+    #docker: "ubuntu:bionic"
+  }
   output {
-    Array[Int] seq = read_lines("sequence.txt")
+    Array[String] seq = read_lines("sequence.txt")
   }
 }
 task calc_GC_frequency {
@@ -70,13 +70,13 @@ task calc_GC_frequency {
       --chrom_sizes ~{chrom_sizes} \
       --out_dir . \
       --read_length ~{read_length} \
-      --fragment_length ~{fragment_length} 
+      --fragment_length ~{fragment_length + 1} 
   }
   runtime {
-    dockerSL: taskDocker
+    docker: taskDocker
   }
   output {
-    File out = "~{outfilename}.~{fragment_length}bp.GC_frequency.txt"
+    File out = "~{outfilename}.~{fragment_length + 1}bp.GC_frequency.txt"
   }
 }
 
@@ -88,6 +88,9 @@ task createTar {
   command {
     set -eo
     tar -czf ~{tarName} ~{sep=" " files}
+  }
+  runtime {
+    docker: "ubuntu:bionic"
   }
   output {
     File tar = "~{tarName}"

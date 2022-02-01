@@ -1,14 +1,19 @@
 version 1.0
-# Griffin
+# Griffin WDL workflow 0.0 (an initial wiring)
+## Author:  Amy Paguirigan (GitHub @vortexing)
+
 ## Sample-level inputs
 ## An array of the 'griffinInputs' struct will create a parallel analysis of many samples
 ## using the same set of parameters.
-struct griffinInputs {
+struct griffinInput {
   File bam_file
   File bam_index
   String sample_name
 }
 
+## The reference data bundle here can be defined in a struct for the entire batch.  
+## Housing this input in a separate input json will allow for easy switching between 
+## hg19 and hg38 as needed.  
 struct referenceData {
     File chrom_sizes
     Array[File] excluded_regions
@@ -17,21 +22,27 @@ struct referenceData {
     File mappable_regions
     File genome_GC_freq_tar
     File sites_yaml
+    File sites_tar
 }
 
-## Workflow inputs, steps and desired final outputs
+## Workflow definition
 workflow runGriffin {
   input {
-    Array[griffinInputs] griffinBatch
+    Array[griffinInput] griffinBatch
     referenceData griffinReferences
   }
-    # Defined variables for this workflow, not likely to be changed per-run by the user
-    String griffinDocker = "vortexing/griffin:v0.6"
-    Array[String] chroms = ["chr1"]
-    #Array[String] chroms = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
-    #                        "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
-    #                        "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", 
-    #                        "chr22"]
+    ## Defined variables for this workflow, not likely to be changed per-run by the user, 
+    ## and validated for use by the workflow writer
+
+    String griffinDocker = "vortexing/griffin:v0.8"
+    
+    Array[String] chroms = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
+                           "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
+                           "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", 
+                           "chr22"]
+
+    ## Note: these params may be something users specify in their input json with the griffinBatch inputs
+    ## OR, you can leave them here b/c these are the "best" way for users to run this particular workflow.
     Int map_quality = 20
     Pair[Int, Int] GC_bias_size_range = (15, 500)
     Pair[Int, Int] profiling_size_range = (100, 200)
@@ -71,7 +82,7 @@ scatter (sample in griffinBatch) {
       size_range = GC_bias_size_range,
       taskDocker = griffinDocker
   }
-  #String mappable_name = basename(mappable_regions)
+  
   call compute_GC_bias {
     input:
       sample_name = sample.sample_name,
@@ -82,8 +93,6 @@ scatter (sample in griffinBatch) {
       taskDocker = griffinDocker
   }
 
-  scatter (chr in chroms) {
-### GC bias and mappability correction (once per bam)
   call compute_mappability_bias {
     input:
       bam_file = sample.bam_file,
@@ -92,15 +101,11 @@ scatter (sample in griffinBatch) {
       mappability_bw = griffinReferences.mappability_bw,
       excluded_regions = griffinReferences.excluded_regions,
       chrom_sizes = griffinReferences.chrom_sizes,
-      chroms = chr,
+      chroms = chroms,
       map_quality = map_quality,
       taskDocker = griffinDocker
   }
 
-
-## nucleosome profiling
-# may run multiple times per bam for different site groups, or ATAC sites vs transcription sites
-# beware ask about parallelization.  
   call calculate_coverage {
     input:
       bam_file = sample.bam_file,
@@ -110,12 +115,13 @@ scatter (sample in griffinBatch) {
       sample_name = sample.sample_name,
       ref_fasta = griffinReferences.ref_fasta,
       mappability_bw = griffinReferences.mappability_bw,
-      chroms = chr,
+      chroms = chroms,
       chrom_sizes = griffinReferences.chrom_sizes,
       chrom_col = chrom_column,
       position_col = position_column,
       strand_col = strand_column,
       sites_yaml = griffinReferences.sites_yaml,
+      sites_tar = griffinReferences.sites_tar,
       norm_window = norm_window,
       size_range = profiling_size_range,
       map_quality = map_quality,
@@ -132,13 +138,14 @@ scatter (sample in griffinBatch) {
       uncorrected_bw = calculate_coverage.uncorrected_bw,
       GC_corrected_bw = calculate_coverage.GC_corrected_bw,
       GC_map_corrected_bw = calculate_coverage.GC_map_corrected_bw,
-      chroms = chr,
+      chroms = chroms,
       excluded_regions = griffinReferences.excluded_regions,
       chrom_sizes = griffinReferences.chrom_sizes,
       chrom_col = chrom_column,
       position_col = position_column,
       strand_col = strand_column,
       sites_yaml = griffinReferences.sites_yaml,
+      sites_tar = griffinReferences.sites_tar,
       norm_window = norm_window,
       save_window = save_window,
       center_window = center_window,
@@ -156,8 +163,8 @@ scatter (sample in griffinBatch) {
       number_of_sites = number_of_sites,
       taskDocker = griffinDocker
   }
-  } # End of chrom scatter
-} ## End of Scatter
+
+} ## End of Sample Scatter
   output {}
 } ## End of workflow
 
@@ -170,7 +177,7 @@ task compute_mappability_bias {
     File mappability_bw
     Array[File] excluded_regions
     File chrom_sizes
-    String chroms
+    Array[String] chroms
     Int map_quality
     String taskDocker
   }
@@ -178,6 +185,7 @@ task compute_mappability_bias {
   command {
     set -eo pipefail
     touch ~{bam_index}
+    mkdir tmp
     python3 /Griffin/scripts/griffin_mappability_correction.py \
       --bam_file ~{bam_file} \
       --bam_file_name ~{sample_name} \
@@ -186,10 +194,10 @@ task compute_mappability_bias {
       --mappability ~{mappability_bw} \
       --exclude_paths ~{sep=' ' excluded_regions} \
       --chrom_sizes ~{chrom_sizes} \
-      --chroms ~{chroms} \
+      --chroms ~{sep=" " chroms} \
       --map_quality ~{map_quality} \
       --CPU ~{taskcpu} \
-      --tmp_dir .
+      --tmp_dir tmp/
   }
   runtime {
     cpu: taskcpu
@@ -276,6 +284,8 @@ task compute_GC_bias {
 
 }
 
+## calculate_coverage is subject to the hacky approach of tar'ing a sites list file set and yaml'ing the listing of them
+
 task calculate_coverage {
   input {
     File bam_file
@@ -285,12 +295,13 @@ task calculate_coverage {
     String sample_name
     File ref_fasta
     File mappability_bw
-    String chroms
+    Array[String] chroms
     File chrom_sizes
     String chrom_col
     String position_col
     String strand_col
     File sites_yaml
+    File sites_tar
     Pair[Int, Int] norm_window
     Pair[Int, Int] size_range
     Int map_quality
@@ -303,6 +314,8 @@ task calculate_coverage {
   command {
     set -eo pipefail
     touch ~{bam_index}
+    mkdir sites
+    tar -xzvf ~{sites_tar} -C sites
 
     python3 /Griffin/scripts/griffin_coverage.py \
       --sample_name ~{sample_name} \
@@ -318,7 +331,7 @@ task calculate_coverage {
       --chrom_column ~{chrom_col} \
       --position_column ~{position_col} \
       --strand_column ~{strand_col} \
-      --chroms ~{chroms} \
+      --chroms ~{sep=" " chroms} \
       --norm_window ~{norm_window.left} ~{norm_window.right} \
       --size_range ~{size_range.left} ~{size_range.right} \
       --map_quality ~{map_quality} \
@@ -338,6 +351,7 @@ task calculate_coverage {
   }
 }
 
+## merge_sites is subject to the hacky approach of tar'ing a sites list file set and yaml'ing the listing of them
 
 task merge_sites {
   input {
@@ -346,13 +360,14 @@ task merge_sites {
     File uncorrected_bw
     File GC_corrected_bw
     File GC_map_corrected_bw
-    String chroms
+    Array[String] chroms
     Array[File] excluded_regions
     File chrom_sizes
     String chrom_col
     String position_col
     String strand_col
     File sites_yaml
+    File sites_tar
     Pair[Int, Int] norm_window
     Pair[Int, Int] save_window
     Pair[Int, Int] center_window
@@ -376,6 +391,8 @@ task merge_sites {
     set -eo pipefail
     mkdir tmp_dir
     mkdir results
+    mkdir sites
+    tar -xzvf ~{sites_tar} -C sites
     python3 /Griffin/scripts/griffin_merge_sites.py \
       --sample_name ~{sample_name} \
       --uncorrected_bw_path ~{uncorrected_bw} \
@@ -389,7 +406,7 @@ task merge_sites {
       --chrom_column ~{chrom_col} \
       --position_column ~{position_col} \
       --strand_column ~{strand_col} \
-      --chroms ~{chroms} \
+      --chroms ~{sep=" " chroms} \
       --sites_yaml ~{sites_yaml} \
       --norm_window ~{norm_window.left} ~{norm_window.right} \
       --save_window ~{save_window.left} ~{save_window.right} \
