@@ -1,28 +1,34 @@
 version 1.0
-## Griffin workflow reference file bundle preparation for hg38
+
+## Still doesn't work due to this:
+# Traceback (most recent call last):
+#   File "/Griffin/scripts/griffin_calc_GC_frequency.py", line 164, in <module>
+#     fetched = np.array(list(fetched.replace('G','1').replace('C','1').replace('A','0').replace('T','0').replace('N','2')),dtype=float)
+# ValueError: could not convert string to float: 'M'
+
+
+## Griffin workflow reference file bundle preparation (in this case for hg38)
 workflow griffinReferencePrep {
+  ## Inputs are here instead of a separate json as this is rarely run and easier to contain in one file since it's such a small "workflow".
   File ref_fasta = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/Homo_sapiens_assembly38.fasta"
   File chrom_sizes = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38.standard.chrom.sizes"
   File mappable_regions = "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100_minus_exclusion_lists.mappable_regions.hg38.bed"
   Int read_length = 500
+
+  ## Docker container validated for Griffin
   String griffinDocker = "vortexing/griffin:v0.8"
-  # call createRange {
-  #   input:
-  #     fragment_size_range = fragment_size_range
-  # }
-
+ 
   scatter (frag in range(read_length)) {
-  call calc_GC_frequency {
-    input:
-      mappable_regions = mappable_regions,
-      ref_fasta = ref_fasta,
-      chrom_sizes = chrom_sizes,
-      fragment_length = frag,
-      read_length = read_length,
-      taskDocker = griffinDocker
+    call calc_GC_frequency {
+      input:
+        mappable_regions = mappable_regions,
+        ref_fasta = ref_fasta,
+        chrom_sizes = chrom_sizes,
+        fragment_length = frag,
+        read_length = read_length,
+        taskDocker = griffinDocker
+    }
   }
-  }
-
   ## Could just concatenate them all into one file in the future, otherwise create a bundle for use as is.
     String regions_name = basename(mappable_regions)
   call createTar {
@@ -36,21 +42,7 @@ workflow griffinReferencePrep {
 }
 
 
-task createRange {
-  input {
-    Pair[Int, Int] fragment_size_range
-  }
-  command {
-    set -eo
-    seq ~{fragment_size_range.left} ~{fragment_size_range.right} > sequence.txt
-  }
-  runtime {
-    #docker: "ubuntu:bionic"
-  }
-  output {
-    Array[String] seq = read_lines("sequence.txt")
-  }
-}
+## Task definitions
 task calc_GC_frequency {
   input {
     File mappable_regions
@@ -60,7 +52,7 @@ task calc_GC_frequency {
     Int fragment_length
     String taskDocker
   }
-    String outfilename = basename(mappable_regions)
+    String outfilename = basename(mappable_regions, ".bed")
   command {
     set -eo pipefail
 
