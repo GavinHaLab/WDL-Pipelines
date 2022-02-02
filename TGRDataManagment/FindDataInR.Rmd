@@ -7,8 +7,8 @@ output: html_document
 ## First install packages
 ```{r}
 install.packages(c("remotes"))
-remotes::install_github('FredHutch/tgR.data@v0.0.3')
-remotes::install_github('FredHutch/tgR.data')
+remotes::install_github('FredHutch/tgR.data@v0.0.3') # to choose a specific version
+remotes::install_github('FredHutch/tgR.data') # to install the most recent version
 ```
 
 ## Load Libraries
@@ -17,7 +17,11 @@ library(tgR.data); library(dplyr)
 ```
 
 ## Set your credentials
+Note: Before running this you need to create a local file, the path to which is the only parameter given to `set_credentials`.  It needs to be structured like this:
+https://github.com/FredHutch/tgR.data/blob/main/requiredCredentials.R
+Where, your specific AWS credentials need to be stored, as well as your REDCap API tokens for the TGR S3 Metadata project and the TGR Dataset Annotations project.  You can find these by going to https://redcap.fredhutch.org/, selecting each project, then choosing the "API" link in the sidebar on the left, and either generating or re-generating a "token".  These long strings of text need to be pasted into your credential file.  
 ```{r}
+
 set_credentials("~/github/cred/indexingCreds.R")
 ```
 
@@ -27,7 +31,8 @@ You must choose a bucket to look in, but the more additional information you add
 ourBucket <- "fh-pi-ha-g-eco"
 files <- get_file_metadata(bucket = ourBucket)
 
-bamFiles <- get_file_metadata(bucket = ourBucket, file_type = "bamCramSam")
+# To only get bam files you can query with the `file_type` param:
+# bamFiles <- get_file_metadata(bucket = ourBucket, file_type = "bamCramSam")
 ```
 
 
@@ -39,7 +44,7 @@ bamFiles %>% group_by(bucket_prefix) %>% summarize(howMany = n_distinct(uuid), h
 ## Find data provenance
 Maybe you have selected only a handful of the total data based on their prefix, and then you want to know more about the data provenance for those files.  Note here, shorter, less complex bucket prefixes would be easier to work with.
 ```{r}
-coolFiles <- bamFiles %>% filter(grepl("Fred_Hutch_Andrew_Hsieh_WGS_72samples", bucket_prefix))
+coolFiles <- files %>% filter(dir_level_1 == "Cascadia")
 dataProv <- get_data_provenance(bucket = coolFiles$bucket_name, prefix = coolFiles$bucket_prefix, uuid = coolFiles$uuid, allowEmpty = T)
 
 withProv <- left_join(coolFiles, dataProv)
