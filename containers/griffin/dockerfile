@@ -1,4 +1,4 @@
-# build as ../griffin:v0.8
+# build as ../griffin:v0.9
 FROM python:3.7.4
 RUN apt-get update --fix-missing -y
 

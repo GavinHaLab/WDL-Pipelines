@@ -34,7 +34,7 @@ workflow runGriffin {
     ## Defined variables for this workflow, not likely to be changed per-run by the user, 
     ## and validated for use by the workflow writer
 
-    String griffinDocker = "vortexing/griffin:v0.8"
+    String griffinDocker = "vortexing/griffin:v0.9"
     
     Array[String] chroms = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
                            "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 

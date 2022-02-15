@@ -1,12 +1,5 @@
 version 1.0
 
-## Still doesn't work due to this:
-# Traceback (most recent call last):
-#   File "/Griffin/scripts/griffin_calc_GC_frequency.py", line 164, in <module>
-#     fetched = np.array(list(fetched.replace('G','1').replace('C','1').replace('A','0').replace('T','0').replace('N','2')),dtype=float)
-# ValueError: could not convert string to float: 'M'
-
-
 ## Griffin workflow reference file bundle preparation (in this case for hg38)
 workflow griffinReferencePrep {
   ## Inputs are here instead of a separate json as this is rarely run and easier to contain in one file since it's such a small "workflow".
@@ -16,7 +9,7 @@ workflow griffinReferencePrep {
   Int read_length = 500
 
   ## Docker container validated for Griffin
-  String griffinDocker = "vortexing/griffin:v0.8"
+  String griffinDocker = "vortexing/griffin:v0.9"
  
   scatter (frag in range(read_length)) {
     call calc_GC_frequency {
