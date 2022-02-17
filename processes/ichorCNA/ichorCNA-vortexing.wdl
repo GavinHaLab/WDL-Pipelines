@@ -1,48 +1,46 @@
 version 1.0
+struct sampleData {
+  ## All sample information including any paired normal bams, or a normal panel, and genome build information for individual bams
+  String sampleName 
+  String sex 
+  File tumorBam 
+  File tumorBai 
+  File? normalBam 
+  File? normalBai
+  String? normalPanel  # this is listed as a string for a path when it's a file found in the ichor container, but if it's an external file, it needs to be changed to a type File?
+  String genomeBuild # hg38 or hg19, only, capitalization matters
+  String genomeStyle  #"NCBI" # or NCBI, only
+}
 
 ## workflow description
 workflow ichorCNA {
   input {
-    ## Future ref struct
-    String genomeBuild = "hg19" # or hg19, only, capitalization matters
-    String genomeStyle = "NCBI" # or NCBI, only
+    Array[sampleData] batchSamples
+    ## Batch level params
     File? exons  
-    Pair[Int, String] binSize = (10000, "10kb") # These must match, to be improved later
-
-    ## future sample struct
-    # File? normalBam 
-    # File? normalBai
-    File tumorBam = "s3://fh-pi-ha-g-eco/Collaborator_Data/Cascadia/BCCRC_pilot/cfDNA_ULPWGS/RP-2598/WGS/TNBC032_P/v1/TNBC032_P.bam"
-    File tumorBai = "s3://fh-pi-ha-g-eco/Collaborator_Data/Cascadia/BCCRC_pilot/cfDNA_ULPWGS/RP-2598/WGS/TNBC032_P/v1/TNBC032_P.bam.bai"
-    
-    String? normalPanel = "/ichorCNA/inst/extdata/HD_ULP_PoN_1Mb_median_normAutosome_mapScoreFiltered_median.rds"
-    
-    String sampleName = "TNBC032_P"
-    String sex = "None"
-
-    ## future params struct?
-    Int qual = 20
-    String normal = "c(0.5)"
-    String ploidy = "c(2,3,4)"
-    String estimateNormal = "TRUE" # these need to be quoted strings in all caps instead of Boolean b/c of R
-    String estimatePloidy = "TRUE"
-    String estimateClonality = "TRUE"
-    String scStates = "c(1,3)" # states to use for subclonal CN
-    Int maxCN = 8
-    Float scPenalty = 1 # penalize subclonal events - n-fold multiplier; n=1 for no penalty,  
-    String includeHOMD = "TRUE"
-    String plotFileType = "pdf" # "png"
-    String plotYlim = "c(-2,4)"
-    String likModel = "t" # if multisample, use "gauss"
-    Float minMapScore = 0.75 # control segmentation - higher (e.g. 0.9999999) leads to higher specificity and fewer segments
-    Float maxFracGenomeSubclone = 0.5
-    Float maxFracCNASubclone = 0.6
-    Float normal2IgnoreSC = 0.90 # Ignore subclonal analysis when initial normal setting >= this value
-    Float txnE = 0.9999 # lower (e.g. 0.99) leads to higher sensitivity and more segments
-    Float txnStrength = 10000 # control segmentation - higher (e.g. 10000000) leads to higher specificity and fewer segments
+    Int binSizeNumeric ## 10000, but must match the other binSize below
+    String binSize  #  "10kb" This must match binSizeNumeric!!!
+    Int qual 
+    String normal 
+    String ploidy 
+    String estimateNormal  # these need to be quoted strings in all caps instead of Boolean b/c of R
+    String estimatePloidy 
+    String estimateClonality 
+    String scStates  # states to use for subclonal CN
+    Int maxCN 
+    Float scPenalty  # penalize subclonal events - n-fold multiplier; n=1 for no penalty,  
+    String includeHOMD 
+    String plotFileType # "pdf" # "png"
+    String plotYlim 
+    String likModel  # "t" # if multisample, use "gauss"
+    Float minMapScore  # control segmentation - higher (e.g. 0.9999999) leads to higher specificity and fewer segments
+    Float maxFracGenomeSubclone 
+    Float maxFracCNASubclone 
+    Float normal2IgnoreSC # Ignore subclonal analysis when initial normal setting >= this value
+    Float txnE # lower (e.g. 0.99) leads to higher sensitivity and more segments
+    Float txnStrength  # control segmentation - higher (e.g. 10000000) leads to higher specificity and fewer segments
     # lower (e.g. 100) leads to higher sensitivity and more segments
-    Float fracReadsChrYMale = 0.001
-
+    Float fracReadsChrYMale 
   }
     ## Workflow and docker level params
     String ichorDocker = "vortexing/ichorcna:v0.4.9"
@@ -57,75 +55,81 @@ workflow ichorCNA {
                           "15", "16", "17", "18", "19", "20", "21", 
                           "22", "X"]
 
-    Array[String] chrs = if genomeStyle == "NCBI" then ncbiChrs else ucscChrs
+  scatter (sample in batchSamples) {
+    ## To allow various bams to come from different genomes and styles but be analyzed the same, these reside inside the scatter
+    Array[String] chrs = if sample.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
+    String? centromere = if sample.genomeBuild == "hg38" then "/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt" else "/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"
+    
+    call read_counter as read_counter_tumor {
+      input:
+        bamFile = sample.tumorBam,
+        baiFile = sample.tumorBai,
+        sampleName = sample.sampleName + "_tumor",
+        binSize = binSizeNumeric, 
+        qual = qual,
+        chrs = chrs,
+        taskDocker = ichorDocker
+    }
 
-    String? centromere = if genomeBuild == "hg38" then "/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt" else "/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"
-
-  call read_counter as read_counter_tumor {
-    input:
-      bamFile = tumorBam,
-      baiFile = tumorBai,
-      sampleName = sampleName + "_tumor",
-      binSize = binSize.left, 
-      qual = qual,
-      chrs = chrs,
-      taskDocker = ichorDocker
-  }
-
-  ## Amy will revisit this, making it conditional based on whether it's run in paired mode or single mode
-  # call read_counter as read_counter_normal {
-  #   input:
-  #     bamFile = normalBam,
-  #     baiFile = normalBai,
-  #     sampleName = sampleName + "_normal",
-  #     binSize = binSize.left, 
-  #     qual = qual,
-  #     chrs = chrs,
-  #     taskDocker = ichorDocker
-  # }
-    ## then call ichorCNA using that information
-  call run_ichorCNA {
-    input:
-      tumorWig = read_counter_tumor.readDepth,
-      #normalWig = read_counter_normal.readDepth,
-      normalPanel = normalPanel,
-      sampleId = sampleName,
-      binSizeName = binSize.right,
-      ichorChrs = chrs,
-      sex = sex,
-      normal = normal,
-      ploidy = ploidy,
-      genomeStyle = genomeStyle,
-      genomeBuild = genomeBuild,
-      estimateNormal = estimateNormal,
-      estimatePloidy = estimatePloidy,
-      estimateClonality = estimateClonality,
-      scStates = scStates,
-      maxCN = maxCN,
-      centromere = centromere,
-      exons = exons,
-      includeHOMD = includeHOMD,
-      txnE = txnE,
-      txnStrength = txnStrength,
-      plotFileType = plotFileType,
-      plotYlim = plotYlim,
-      likModel = likModel,
-      minMapScore = minMapScore,
-      maxFracGenomeSubclone = maxFracGenomeSubclone,
-      maxFracCNASubclone = maxFracCNASubclone,
-      normal2IgnoreSC = normal2IgnoreSC,
-      scPenalty = scPenalty,
-      fracReadsChrYMale = fracReadsChrYMale,
-      taskDocker = ichorDocker
-  }
+    if (defined(sample.normalBam)) {
+    ## This is a little weird, but is changing an optional File input into a File input.  
+      File rcNormalBam = select_first([sample.normalBam])
+      File rcNnormalBai = select_first([sample.normalBai])
+      call read_counter as read_counter_normal {
+        input:
+          bamFile = rcNormalBam, 
+          baiFile = rcNnormalBai,
+          sampleName = sample.sampleName + "_normal",
+          binSize = binSizeNumeric, 
+          qual = qual,
+          chrs = chrs,
+          taskDocker = ichorDocker
+      }
+    }
+      ## then call ichorCNA using that information
+    call run_ichorCNA {
+      input:
+        tumorWig = read_counter_tumor.readDepth,
+        normalWig = read_counter_normal.readDepth,
+        normalPanel = sample.normalPanel,
+        sampleId = sample.sampleName,
+        binSizeName = binSize,
+        ichorChrs = chrs,
+        sex = sample.sex,
+        normal = normal,
+        ploidy = ploidy,
+        genomeStyle = sample.genomeStyle,
+        genomeBuild = sample.genomeBuild,
+        estimateNormal = estimateNormal,
+        estimatePloidy = estimatePloidy,
+        estimateClonality = estimateClonality,
+        scStates = scStates,
+        maxCN = maxCN,
+        centromere = centromere,
+        exons = exons,
+        includeHOMD = includeHOMD,
+        txnE = txnE,
+        txnStrength = txnStrength,
+        plotFileType = plotFileType,
+        plotYlim = plotYlim,
+        likModel = likModel,
+        minMapScore = minMapScore,
+        maxFracGenomeSubclone = maxFracGenomeSubclone,
+        maxFracCNASubclone = maxFracCNASubclone,
+        normal2IgnoreSC = normal2IgnoreSC,
+        scPenalty = scPenalty,
+        fracReadsChrYMale = fracReadsChrYMale,
+        taskDocker = ichorDocker
+    }
+  } # End scatter
 
   output {
-    File tumorWig = read_counter_tumor.readDepth
-    File corrDepth = run_ichorCNA.corrDepth
-    File cna = run_ichorCNA.cna
-    File segTxt = run_ichorCNA.segTxt
-    File seg = run_ichorCNA.seg
-    File rdata = run_ichorCNA.rdata
+    Array[File] tumorWig = read_counter_tumor.readDepth
+    Array[File] corrDepth = run_ichorCNA.corrDepth
+    Array[File] cna = run_ichorCNA.cna
+    Array[File] segTxt = run_ichorCNA.segTxt
+    Array[File] seg = run_ichorCNA.seg
+    Array[File] rdata = run_ichorCNA.rdata
   }
 }
 
