@@ -3,15 +3,17 @@ version 1.0
 # Creates unmapped crams with SAMPLE_ALIAS=~{sampleName} but incorporates
 # a dataset_id via the TGR into the filename for future use. 
 
-struct sampleInformation {
+## If you are using very large bam files and want to speed this process up,
+## use the createDownloadCache task and change the Type of the alignedBam from File to String in the struct below
+struct bamSample {
   String sample_name
   String dataset_id
-  String alignedBam
+  File alignedBam
 }
 
 workflow AlignedToUnMappedCram {
   input {
-    Array[sampleInformation] samplesToUnmap
+    Array[bamSample] samplesToUnmap
   }
 
   ## Docker containers this workflow has been validated with
@@ -19,15 +21,14 @@ workflow AlignedToUnMappedCram {
   String samtoolsDocker = "vortexing/samtools:1.10"
 
 scatter (job in samplesToUnmap) {
-
     String base_file_name = job.sample_name + "_" + job.dataset_id
-    call createDownloadCache {
-      input:
-        fileToCache = job.alignedBam
-    }
+    # call createDownloadCache {
+    #   input:
+    #     fileToCache = job.alignedBam
+    # }
     call RevertBam {
       input: 
-        alignedBam = createDownloadCache.file,
+        alignedBam = job.alignedBam,
         base_file_name = base_file_name,
         sampleName = job.sample_name, 
         taskDocker = GATKDocker

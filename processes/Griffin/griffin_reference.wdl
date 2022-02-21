@@ -23,7 +23,7 @@ workflow griffinReferencePrep {
     }
   }
   ## Could just concatenate them all into one file in the future, otherwise create a bundle for use as is.
-    String regions_name = basename(mappable_regions)
+    String regions_name = basename(mappable_regions, ".bed")
   call createTar {
     input:
       files = calc_GC_frequency.out,

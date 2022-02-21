@@ -1,14 +1,14 @@
 version 1.0
 # struct for the input files for a given sample, if downloadCache task is used
-struct sampleInputs {
+struct preprocessSample {
   String sample_name
   String dataset_id
-  File unmappedCram
-  File unmappedCrai
+  File unmappedCramBam
+  File unmappedCraiBai
 }
 
 # struct for all the reference data needed for the run
-struct referenceData {
+struct wgsReferenceData {
   String ref_name
   File ref_fasta
   File ref_fasta_index
@@ -33,8 +33,7 @@ struct referenceData {
 
 ## WGS data preprocessing workflow for downstream variant calling.
 ## Input requirements:
-## - Paired end sequencing data in unmapped BAM (uBAM) format that comply with the following requirements:
-## - - filenames all have the same suffix (we use ".unmapped.bam")
+## - Paired end sequencing data in unmapped BAM (uBAM) or unmapped CRAM (uCRAM) format that comply with the following requirements:
 ## - - files must pass validation by ValidateSamFile (a Picard tool)
 ##
 ## Output Files:
@@ -42,8 +41,8 @@ struct referenceData {
 ## 
 workflow WGS_preprocess_for_variants {
   input {
-    Array[sampleInputs] batchInputs
-    referenceData referenceDataSet
+    Array[preprocessSample] batchInputs
+    wgsReferenceData referenceDataSet
   }
     # Docker containers this workflow has been designed for
     String GATKdocker = "broadinstitute/gatk:4.2.2.0"
@@ -66,7 +65,7 @@ workflow WGS_preprocess_for_variants {
     # Incorporate a sample name, dataset id and the reference genome name into the filenames
     String base_file_name = job.sample_name + "_" + job.dataset_id + "." + referenceDataSet.ref_name
 
-    # Due to large file sizes, using this task can subantially increase speed
+    # Due to large file sizes, using this task can substantially increase speed
     # call createDownloadCache {
     #   input:
     #     fileToCache = job.unmappedCram
@@ -74,8 +73,8 @@ workflow WGS_preprocess_for_variants {
 
   call MarkIlluminaAdapters {
     input:
-      input_bam = job.unmappedCram,
-      input_bai = job.unmappedCrai,
+      input_bam = job.unmappedCramBam,
+      input_bai = job.unmappedCraiBai,
       base_file_name = base_file_name,
       taskDocker = GATKdocker
   }
@@ -144,14 +143,15 @@ workflow WGS_preprocess_for_variants {
     #     ref_fasta_index = referenceDataSet.ref_fasta_index,
     #     docker = GATKdocker
     # }
-    # call CollectWgsMetrics {
-    #   input: 
-    #     input_bam = GatherBamFiles.output_bam,
-    #     base_file_name = referenceDataSet.base_file_name,
-    #     ref_fasta = referenceDataSet.ref_fasta,
-    #     ref_fasta_index = referenceDataSet.ref_fasta_index,
-    #     docker = GATKdocker
-    # }
+    call CollectWgsMetrics {
+      input: 
+        input_bam = GatherBamFiles.output_bam,
+        input_bam_index = GatherBamFiles.output_bai,
+        base_file_name = base_file_name,
+        ref_fasta = referenceDataSet.ref_fasta,
+        ref_fasta_index = referenceDataSet.ref_fasta_index,
+        taskDocker = GATKdocker
+    }
     
   } # End of job scatter
 
@@ -159,7 +159,7 @@ workflow WGS_preprocess_for_variants {
   output {
     Array[File] analysisReadyBam = GatherBamFiles.output_bam
     Array[File] analysisReadyIndex = GatherBamFiles.output_bai
-    #Array[File] wgsMetrics = CollectWgsMetrics.out
+    Array[File] wgsMetrics = CollectWgsMetrics.metrics
     #Array[File] alignmentMetrics = CollectAlignmentSummaryMetrics.out
   }
 }# End workflow
@@ -167,6 +167,95 @@ workflow WGS_preprocess_for_variants {
 
 
 #### TASK DEFINITIONS
+
+# Generate Base Quality Score Recalibration (BQSR) model and apply it
+task ApplyBaseRecalibrator {
+  input {
+    File input_bam
+    File intervals 
+    File input_bam_index
+    String base_file_name
+    File dbSNP_vcf
+    File dbSNP_vcf_index
+    Array[File] known_indels_sites_VCFs
+    Array[File] known_indels_sites_indices
+    File ref_dict
+    File ref_fasta
+    File ref_fasta_index
+    String taskDocker
+  }
+  command {
+  set -eo pipefail
+
+  samtools index ~{input_bam}
+
+  gatk --java-options "-Xms8g" \
+      BaseRecalibrator \
+      -R ~{ref_fasta} \
+      -I ~{input_bam} \
+      -O ~{base_file_name}.recal_data.csv \
+      --known-sites ~{dbSNP_vcf} \
+      --known-sites ~{sep=" --known-sites " known_indels_sites_VCFs} \
+      --intervals ~{intervals} \
+      --interval-padding 100 
+
+  gatk --java-options "-Xms8g" \
+      ApplyBQSR \
+      -bqsr ~{base_file_name}.recal_data.csv \
+      -I ~{input_bam} \
+      -O ~{base_file_name}.recal.bam \
+      -R ~{ref_fasta} \
+      --intervals ~{intervals} \
+      --interval-padding 100 
+
+  #finds the current sort order of this bam file
+  samtools view -H ~{base_file_name}.recal.bam | grep @SQ | sed 's/@SQ\tSN:\|LN://g' > ~{base_file_name}.sortOrder.txt
+
+  }
+  output {
+    File recalibrated_bam = "~{base_file_name}.recal.bam"
+    File recalibrated_bai = "~{base_file_name}.recal.bai"
+    File sortOrder = "~{base_file_name}.sortOrder.txt"
+  }
+  runtime {
+    memory: "36 GB"
+    cpu: 2
+    docker: taskDocker
+  }
+}
+
+# Note these tasks will break if the read lengths in the bam are greater than 250.
+task CollectWgsMetrics {
+  input {
+    File input_bam
+    File input_bam_index
+    String base_file_name
+    File ref_fasta
+    File ref_fasta_index
+    String taskDocker
+  }
+
+  command {
+    set -eo pipefail
+
+    gatk --java-options "-Dsamjdk.compression_level=5 -Xms1g" \
+      CollectWgsMetrics \
+        --INPUT ~{input_bam} \
+        --VALIDATION_STRINGENCY SILENT \
+        --REFERENCE_SEQUENCE ~{ref_fasta} \
+        --INCLUDE_BQ_HISTOGRAM true \
+        --COUNT_UNPAIRED true \
+        --OUTPUT ~{base_file_name}_wgs_metrics.txt \
+        --USE_FAST_ALGORITHM true 
+  }
+  runtime {
+    dockerSL: taskDocker
+    cpu: 2
+  }
+  output {
+    File metrics = "~{base_file_name}_wgs_metrics.txt"
+  }
+}
 
 # Combine multiple recalibrated BAM files from scattered ApplyRecalibration runs
 task GatherBamFiles {
@@ -319,7 +408,7 @@ task MarkDuplicatesSpark {
   # This works because the output of BWA is query-grouped and therefore, so is the output of MergeBamAlignment.
   # While query-grouped isn't actually query-sorted, it's good enough for MarkDuplicates with ASSUME_SORT_ORDER="queryname"
   command {
-    set -eo pipefails
+    set -eo pipefail
     gatk --java-options "-XX:+UseParallelGC -XX:ParallelGCThreads=4 -Dsamjdk.compression_level=5 -Xms32g" \
       MarkDuplicatesSpark \
       --input ~{input_bam} \
