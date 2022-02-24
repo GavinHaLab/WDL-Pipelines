@@ -1,0 +1,23 @@
+{
+  "runGriffin.griffinBatch": [
+    {
+      "sample_name": "TNBC032_P",
+      "bam_file": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/realignBam/bcfb4f90-1f4f-4ee0-bd33-80dee7083da9/call-preProcess/shard-0/WGS_preprocess_for_variants/dd50828b-2733-4a19-bb75-00acde8dbe22/call-GatherBamFiles/shard-0/cacheCopy/execution/TNBC032_PBC0001672.hg38.bam",
+      "bam_index": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/realignBam/bcfb4f90-1f4f-4ee0-bd33-80dee7083da9/call-preProcess/shard-0/WGS_preprocess_for_variants/dd50828b-2733-4a19-bb75-00acde8dbe22/call-GatherBamFiles/shard-0/cacheCopy/execution/TNBC032_PBC0001672.hg38.bam.bai"
+    }
+  ],
+  "runGriffin.griffinReferences": {
+    "excluded_regions": ["/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/encode_unified_GRCh38_exclusion_list.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_alternative_haplotypes.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_fix_patches.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_gaps.bed",
+      "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38_centromeres.bed"],
+    "mappability_bw": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100.Umap.MultiTrackMappability.bw",
+    "ref_fasta": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/Homo_sapiens_assembly38.fasta",
+    "chrom_sizes": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/hg38.standard.chrom.sizes",
+    "mappable_regions": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/k100_minus_exclusion_lists.mappable_regions.hg38.bed",
+    "genome_GC_freq_tar": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/griffinReferencePrep/bf1923c7-1c07-4a37-bd8c-d91f580c8d12/call-createTar/execution/k100_minus_exclusion_lists.mappable_regions.hg38.maxfrag_size.500.GC_frequency.tar.gz",
+    "sites_yaml": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/griffin_sites2.yaml",
+    "sites_tar": "/fh/scratch/delete90/paguirigan_a/apaguiri/cromwell-executions/ReferenceDataSets/sites.tar.gz"
+  }
+}

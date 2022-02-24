@@ -87,7 +87,7 @@ scatter (sample in griffinBatch) {
     input:
       sample_name = sample.sample_name,
       GC_counts = compute_GC_counts.out,
-      mappable_name = "repeat_masker.mapable.k50.Umap.hg38", # b/c I can't get the reference workflow to run
+      mappable_name = "k100_minus_exclusion_lists.mappable_regions.hg38", # b/c I can't get the reference workflow to run
       genome_GC_freq_tar  = griffinReferences.genome_GC_freq_tar,
       size_range = GC_bias_size_range,
       taskDocker = griffinDocker
@@ -257,17 +257,18 @@ task compute_GC_bias {
     Pair[Int, Int] size_range
     String taskDocker
     }
-    
+
   command {
     set -eo pipefail
     mkdir GC_counts
     cp ~{GC_counts} ./GC_counts
     mkdir genome_dir
-    tar -xf ~{genome_GC_freq_tar} -C ./genome_dir
+    tar -xzf ~{genome_GC_freq_tar} --directory ./genome_dir
+
     python3 /Griffin/scripts/griffin_GC_bias.py \
       --bam_file_name ~{sample_name} \
       --mappable_name ~{mappable_name} \
-      --genome_GC_frequency genome_dir/genome_GC_frequency \
+      --genome_GC_frequency genome_dir \
       --out_dir . \
       --size_range ~{size_range.left} ~{size_range.right}
   }
@@ -315,7 +316,7 @@ task calculate_coverage {
     set -eo pipefail
     touch ~{bam_index}
     mkdir sites
-    tar -xzvf ~{sites_tar} -C sites
+    tar -xzf ~{sites_tar} --directory ./sites
 
     python3 /Griffin/scripts/griffin_coverage.py \
       --sample_name ~{sample_name} \
@@ -392,7 +393,7 @@ task merge_sites {
     mkdir tmp_dir
     mkdir results
     mkdir sites
-    tar -xzvf ~{sites_tar} -C sites
+    tar -xzf ~{sites_tar} --directory ./sites
     python3 /Griffin/scripts/griffin_merge_sites.py \
       --sample_name ~{sample_name} \
       --uncorrected_bw_path ~{uncorrected_bw} \

@@ -274,6 +274,8 @@ task GatherBamFiles {
       --OUTPUT ~{base_file_name}.bam \
       --CREATE_INDEX true \
       --VERBOSITY WARNING 
+    
+   mv ~{base_file_name}.bai ~{base_file_name}.bam.bai
   }
   runtime {
     dockerSL: taskDocker
@@ -281,7 +283,7 @@ task GatherBamFiles {
   }
   output {
     File output_bam = "~{base_file_name}.bam"
-    File output_bai = "~{base_file_name}.bai"
+    File output_bai = "~{base_file_name}.bam.bai"
   }
 }
 

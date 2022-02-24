@@ -1,0 +1,15 @@
+{
+  "realignBam.samplesToUnmap": 
+  [
+    {
+      "sample_name": "TNBC032",
+      "dataset_id": "PBC0001672",
+      "alignedBam": "s3://.../TNBC032_P/v1/TNBC032_P.bam"
+    },
+    {
+      "sample_name": "TNBC051",
+      "dataset_id": "PBC0001276",
+      "alignedBam": "s3://.../TNBC051_P/v1/TNBC051_P.bam"
+    }
+  ]
+}

@@ -72,7 +72,9 @@ task createTar {
   }
   command {
     set -eo
-    tar -czf ~{tarName} ~{sep=" " files}
+    mkdir regions
+    mv ~{sep=" " files} regions
+    tar -C ./regions -czf ~{tarName} ./
   }
   runtime {
     docker: "ubuntu:bionic"

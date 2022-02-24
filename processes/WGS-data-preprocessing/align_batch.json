@@ -4,15 +4,15 @@
     {
       "sample_name": "test-1",
       "dataset_id": "174.1_ps7n_ET2273",
-      "unmappedCram": "/fh/scratch/delete90.../test-1_174.1_ps7n_ET2273.cram",
-      "unmappedCrai": "/fh/scratch/delete90.../test-1_174.1_ps7n_ET2273.cram.crai"
+      "unmappedCramBam": "/fh/scratch/delete90.../test-1_174.1_ps7n_ET2273.cram",
+      "unmappedCraiBai": "/fh/scratch/delete90.../test-1_174.1_ps7n_ET2273.cram.crai"
 
     },
     {
       "sample_name": "test-2",
       "dataset_id": "70CR_s7",
-      "unmappedCram": "/fh/scratch/delete90/.../test-2_70CR_s7.cram",
-      "unmappedCrai": "/fh/scratch/delete90/.../test-2_70CR_s7.cram.crai"
+      "unmappedCramBam": "/fh/scratch/delete90/.../test-2_70CR_s7.cram",
+      "unmappedCraiBai": "/fh/scratch/delete90/.../test-2_70CR_s7.cram.crai"
     }
   ]
 }
