@@ -9,7 +9,7 @@
       "normalBai": null,
       "normalPanel": "/ichorCNA/inst/extdata/HD_ULP_PoN_1Mb_median_normAutosome_mapScoreFiltered_median.rds",
       "genomeBuild": "hg19", 
-      "genomeStyle": "NCBI"
+      "genomeStyle": "NCBI" ## Switch to "UCSC" for hg38
     }
   ],
   "ichorCNA.exons": null,
