@@ -207,7 +207,7 @@ task run_ichorCNA {
     read -r -d '' VAR <<'EOF'
     library(ichorCNA); run_ichorCNA(id = '~{sampleId}',
     tumor_wig = '~{tumorWig}',
-    repTimeWig = '/ichorCNA/inst/extdata/RepTiming_~{genomeBuild}_~{binSizeName}.wig',
+    repTimeWig = '/ichorCNA/inst/extdata/Koren_repTiming_~{genomeBuild}_~{binSizeName}.wig',
     sex = '~{sex}',
     gcWig = '/ichorCNA/inst/extdata/gc_~{genomeBuild}_~{binSizeName}.wig',
     mapWig = '/ichorCNA/inst/extdata/map_~{genomeBuild}_~{binSizeName}.wig',
