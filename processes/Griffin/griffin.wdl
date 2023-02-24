@@ -34,7 +34,7 @@ workflow runGriffin {
     ## Defined variables for this workflow, not likely to be changed per-run by the user, 
     ## and validated for use by the workflow writer
 
-    String griffinDocker = "vortexing/griffin:v0.9"
+    String griffinDocker = "vortexing/griffin:v0.2.0"
     
     Array[String] chroms = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
                            "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
@@ -186,7 +186,7 @@ task compute_mappability_bias {
     set -eo pipefail
     touch ~{bam_index}
     mkdir tmp
-    python3 /Griffin/scripts/griffin_mappability_correction.py \
+    python3 Griffin/scripts/griffin_mappability_correction.py \
       --bam_file ~{bam_file} \
       --bam_file_name ~{sample_name} \
       --output ~{sample_name}.mappability_bias.txt \
@@ -227,7 +227,7 @@ task compute_GC_counts {
   command {
     set -eo pipefail
     touch ~{bam_index}
-    python3 /Griffin/scripts/griffin_GC_counts.py \
+    python3 Griffin/scripts/griffin_GC_counts.py \
       --bam_file ~{bam_file} \
       --bam_file_name ~{sample_name} \
       --mappable_regions ~{mappable_regions} \
@@ -265,7 +265,7 @@ task compute_GC_bias {
     mkdir genome_dir
     tar -xzf ~{genome_GC_freq_tar} --directory ./genome_dir
 
-    python3 /Griffin/scripts/griffin_GC_bias.py \
+    python3 Griffin/scripts/griffin_GC_bias.py \
       --bam_file_name ~{sample_name} \
       --mappable_name ~{mappable_name} \
       --genome_GC_frequency genome_dir \
@@ -318,7 +318,7 @@ task calculate_coverage {
     mkdir sites
     tar -xzf ~{sites_tar} --directory ./sites
 
-    python3 /Griffin/scripts/griffin_coverage.py \
+    python3 Griffin/scripts/griffin_coverage.py \
       --sample_name ~{sample_name} \
       --bam ~{bam_file} \
       --GC_bias ~{GC_bias} \
@@ -394,7 +394,7 @@ task merge_sites {
     mkdir results
     mkdir sites
     tar -xzf ~{sites_tar} --directory ./sites
-    python3 /Griffin/scripts/griffin_merge_sites.py \
+    python3 Griffin/scripts/griffin_merge_sites.py \
       --sample_name ~{sample_name} \
       --uncorrected_bw_path ~{uncorrected_bw} \
       --GC_corrected_bw_path ~{GC_corrected_bw} \
@@ -445,7 +445,7 @@ task generate_plots {
   command {
     set -eo pipefail
     mkdir out_dir
-    python3 /Griffin/scripts/griffin_plot.py \
+    python3 Griffin/scripts/griffin_plot.py \
       --in_dir in_dir \ ## HMMMMMMM
       --samples_yaml samples_yaml \ ##### YIKES
       --save_window ~{save_window.left} ~{save_window.right} \
