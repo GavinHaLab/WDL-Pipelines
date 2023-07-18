@@ -1,4 +1,4 @@
-# ichorCNA-WDL
+# ichorCNA.wdl
 A revised version of [this WDL](https://github.com/GavinHaLab/wdl-repo/tree/main/processes/ichorCNA) so that it outputs plots.
 Instructions on how to run a WDL on Cromwell [here](#instructions).
 
