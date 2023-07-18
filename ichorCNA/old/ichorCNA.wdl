@@ -40,8 +40,7 @@ workflow ichorCNA {
     Float txnE # lower (e.g. 0.99) leads to higher sensitivity and more segments
     Float txnStrength  # control segmentation - higher (e.g. 10000000) leads to higher specificity and fewer segments
     # lower (e.g. 100) leads to higher sensitivity and more segments
-    Float fracReadsInChrYForMale 
-
+    Float fracReadsChrYMale 
   }
     ## Workflow and docker level params
     String ichorDocker = "fredhutch/ichorcna:v0.5.0"
@@ -49,26 +48,16 @@ workflow ichorCNA {
     Array[String] ucscChrs = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
                            "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
                            "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", 
-                           "chr22", "chrX", "chrY"]
+                           "chr22", "chrX"]
 
     Array[String] ncbiChrs = ["1", "2", "3", "4", "5", "6", "7", 
                           "8", "9", "10", "11", "12", "13", "14", 
                           "15", "16", "17", "18", "19", "20", "21", 
-                          "22", "X", "Y"]
-
-    Array[String] ichorchr = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
-                           "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", 
-                           "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", 
-                           "chr22", "chrX"]
-
-    Array[String] chrtrain = ["1", "2", "3", "4", "5", "6", "7", 
-                          "8", "9", "10", "11", "12", "13", "14", 
-                          "15", "16", "17", "18", "19", "20", "21", 
-                          "22"]
+                          "22", "X"]
 
   scatter (sample in batchSamples) {
     ## To allow various bams to come from different genomes and styles but be analyzed the same, these reside inside the scatter
-    Array[String] RDchrs = if sample.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
+    Array[String] chrs = if sample.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
     String? centromere = if sample.genomeBuild == "hg38" then "/ichorCNA/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt" else "/ichorCNA/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"
     
     call read_counter as read_counter_tumor {
@@ -78,7 +67,7 @@ workflow ichorCNA {
         sampleName = sample.sampleName + "_tumor",
         binSize = binSizeNumeric, 
         qual = qual,
-        chrs = RDchrs,
+        chrs = chrs,
         taskDocker = ichorDocker
     }
 
@@ -93,7 +82,7 @@ workflow ichorCNA {
           sampleName = sample.sampleName + "_normal",
           binSize = binSizeNumeric, 
           qual = qual,
-          chrs = RDchrs,
+          chrs = chrs,
           taskDocker = ichorDocker
       }
     }
@@ -105,8 +94,7 @@ workflow ichorCNA {
         normalPanel = sample.normalPanel,
         sampleId = sample.sampleName,
         binSizeName = binSize,
-        ichorChrs = ichorchr,
-        ichorChrTrain = chrtrain,
+        ichorChrs = chrs,
         sex = sample.sex,
         normal = normal,
         ploidy = ploidy,
@@ -130,7 +118,7 @@ workflow ichorCNA {
         maxFracCNASubclone = maxFracCNASubclone,
         normal2IgnoreSC = normal2IgnoreSC,
         scPenalty = scPenalty,
-        fracReadsChrYMale = fracReadsInChrYForMale,
+        fracReadsChrYMale = fracReadsChrYMale,
         taskDocker = ichorDocker
     }
   } # End scatter
@@ -142,9 +130,6 @@ workflow ichorCNA {
     Array[File] segTxt = run_ichorCNA.segTxt
     Array[File] seg = run_ichorCNA.seg
     Array[File] rdata = run_ichorCNA.rdata
-    Array[File] params = run_ichorCNA.params
-
-    Array[File] plotTar = run_ichorCNA.plotTar
   }
 }
 
@@ -188,7 +173,6 @@ task run_ichorCNA {
     String sampleId
     String binSizeName
     Array[String] ichorChrs
-    Array[String] ichorChrTrain
     String sex
     String normal
     String ploidy
@@ -232,7 +216,6 @@ task run_ichorCNA {
     maxCN = ~{maxCN},
     minMapScore = ~{minMapScore},
     chrs = 'c("~{sep='\", \"' ichorChrs}")',
-    chrTrain = 'c("~{sep='\", \"' ichorChrTrain}")',
     includeHOMD = ~{includeHOMD},
     genomeStyle = '~{genomeStyle}',
     genomeBuild = '~{genomeBuild}',
@@ -250,14 +233,11 @@ task run_ichorCNA {
     fracReadsInChrYForMale = ~{fracReadsChrYMale},
     plotFileType = '~{plotFileType}',
     plotYLim = '~{plotYlim}',
-    outDir = './',
+    outDir = '.',
     cores  = ~{taskCPU} ~{", centromere = '" + centromere + "'"} ~{", exons.bed = '" + exons + "'"} ~{", normal_wig = '" + normalWig + "'"} ~{", normal_panel = '" + normalPanel + "'"})
     EOF
 
     echo "$VAR" | Rscript -
-
-    tar -czvf ~{sampleId}.plots.tar.gz ~{sampleId}/~{sampleId}*
-    
   }
   runtime {
     memory: "10G"
@@ -271,7 +251,5 @@ task run_ichorCNA {
     File segTxt = "~{sampleId}.seg.txt"
     File seg = "~{sampleId}.seg"
     File rdata = "~{sampleId}.RData"
-
-    File plotTar = "~{sampleId}.plots.tar.gz"
   }
 }
