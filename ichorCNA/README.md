@@ -32,9 +32,6 @@ For more info on the ichorCNA tool, visit the [Github Wiki page for ichorCNA](ht
 
 Everything else in the inputs.json file have example inputs that you can refer to. For the `ichorCNA.plotFileType` it can be either png or pdf.
 
-### options.json file- Optional
-This is for you to configure your Cromwell workflow job. [Here is more info on cromwell options](https://cromwell.readthedocs.io/en/stable/wf_options/Overview/) in Cromwell docs.
-
 ## Outputs
 A complete list of outputs can be found in [this Github wiki page](https://github.com/broadinstitute/ichorCNA/wiki/Output) along with parameter info.
 
