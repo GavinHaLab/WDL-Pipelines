@@ -1,4 +1,5 @@
 # ichorCNA-wdl
+WDL for https://github.com/GavinHaLab/ichorCNA. \
 A revised version of [this WDL](https://github.com/GavinHaLab/wdl-repo/tree/main/processes/ichorCNA) so that it outputs plots.
 [Here is info on a snakemake version](https://github.com/broadinstitute/ichorCNA/wiki/SnakeMake-pipeline-for-ichorCNA) for comparison. 
 
@@ -6,7 +7,7 @@ The ichorCNA.wdl workflow has two tasks:
 - `read_counter`
 - `run_ichorCNA`
 
-The wdl calls a `scattter` and calls both tasks for each sample in `batchSamples`.
+The wdl calls a `scatter` and calls both tasks for each sample in `batchSamples`.
 
 The workflow outputs 8 files:
 - `~{sampleName}.bin~{binSize}.wig`
