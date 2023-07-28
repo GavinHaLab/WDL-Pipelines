@@ -1,1 +1,0 @@
-# tg-wdl-WGS-pairedConsensusVariants
