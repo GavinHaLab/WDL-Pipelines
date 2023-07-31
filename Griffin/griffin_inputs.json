@@ -6,20 +6,21 @@
         }
 
     ],
+    "griffin.griffin_docker": "vortexing/griffin:v0.2.0",
     "griffin.GC_counts.disk_size": 120,
-    "griffin.mappability_bw": "k100.Umap.MultiTrackMappability.bw",
     "griffin.GC_counts.cpu_num": 8,
+    "griffin.GC_counts.mem_size": 8,
+    
+    "griffin.mappability_bw": "k100.Umap.MultiTrackMappability.bw",
     "griffin.gaps": "hg38_gaps.bed",
     "griffin.reference_genome": "Homo_sapiens_assembly38.fasta",
     "griffin.genome_GC_frequency": "genome_GC_frequency.tar",
     "griffin.mappable_regions": "k100_minus_exclusion_lists.mappable_regions.hg38.bed",
     "griffin.chrom_sizes": "hg38.standard.chrom.sizes",
     "griffin.patches": "hg38_fix_patches.bed",
-    "griffin.GC_counts.mem_size": 8,
     "griffin.centromeres": "hg38_centromeres.bed",
     "griffin.alternative_haplotypes": "hg38_alternative_haplotypes.bed",
     "griffin.encode_exclude": "encode_unified_GRCh38_exclusion_list.bed",
-    "griffin.griffin_docker": "vortexing/griffin:v0.2.0",
     "griffin.map_quality": 20,
     "griffin.GC_bias_size_range": [15,500],
 
