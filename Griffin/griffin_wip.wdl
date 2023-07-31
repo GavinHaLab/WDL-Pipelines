@@ -2,8 +2,6 @@ version 1.0
 struct sampleData {
     String sample_name
     File bam_file
-    Array[File] sites_files
-    Array[String] sites_names
 }
 
 workflow griffin {
@@ -21,7 +19,9 @@ workflow griffin {
         File reference_genome
         File genome_GC_frequency
         Array[Int] GC_bias_size_range
-
+        
+        Array[File] sites_files
+        Array[String] sites_names
         String chrom_column # column containing the chromosome in your sites file
         String position_column # column containing the site position in your sites file
         String strand_column # column for indicating site direction in your sites file. If this column doesn't exist, the script will assume non-directional sites.
@@ -78,8 +78,8 @@ workflow griffin {
                     sample_name = sample.sample_name,
                     reference_genome = reference_genome,
                     chrom_sizes = chrom_sizes,
-                    sites_files = sample.sites_files,
-                    sites_names = sample.sites_names,
+                    sites_files = sites_files,
+                    sites_names = sites_names,
                     chrom_column = chrom_column,
                     position_column = position_column,
                     strand_column = strand_column,
@@ -100,8 +100,8 @@ workflow griffin {
                     GC_corrected_bw = calc_cov.GC_corrected_bw,
                     mappability_bw = mappability_bw,
                     chrom_sizes = chrom_sizes,
-                    sites_files = sample.sites_files,
-                    sites_names = sample.sites_names,
+                    sites_files = sites_files,
+                    sites_names = sites_names,
                     chrom_column = chrom_column,
                     position_column = position_column,
                     strand_column = strand_column,
