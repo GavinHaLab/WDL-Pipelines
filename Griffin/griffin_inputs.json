@@ -1,0 +1,49 @@
+{
+    "griffin.samples": [
+        {
+            "sample_name": "griffin_test",
+            "bam_file": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/Healthy_GSM1833219_downsampled.sorted.mini.bam",
+            "sites_files": ["/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/CTCF.hg38.1000.txt"],
+            "sites_names": ["CTCF_demo"]
+        }
+
+    ],
+    "griffin.GC_counts.disk_size": 120,
+    "griffin.mappability_bw": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/k100.Umap.MultiTrackMappability.bw",
+    "griffin.GC_counts.cpu_num": 8,
+    "griffin.gaps": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/hg38_gaps.bed",
+    "griffin.reference_genome": "/fh/fast/ha_g/grp/reference/GRCh38/Broad_bundle_hg38/v0/Homo_sapiens_assembly38.fasta",
+    "griffin.genome_GC_frequency": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/genome_GC_frequency.tar",
+    "griffin.mappable_regions": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/k100_minus_exclusion_lists.mappable_regions.hg38.bed",
+    "griffin.chrom_sizes": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/hg38.standard.chrom.sizes",
+    "griffin.patches": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/hg38_fix_patches.bed",
+    "griffin.GC_counts.mem_size": 8,
+    "griffin.centromeres": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/hg38_centromeres.bed",
+    "griffin.alternative_haplotypes": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/hg38_alternative_haplotypes.bed",
+    "griffin.encode_exclude": "/fh/scratch/delete90/ha_g/users/agage1/test/broad_griffin_wdl/encode_unified_GRCh38_exclusion_list.bed",
+    "griffin.griffin_docker": "vortexing/griffin:v0.2.0",
+    "griffin.map_quality": 20,
+    "griffin.GC_bias_size_range": [15,500],
+
+    "griffin.chroms": ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22"],
+    "griffin.size_range": [100,200],
+    "griffin.norm_window": [-5000,5000],
+    "griffin.save_window": [-1000,1000],
+    "griffin.center_window": [-30,30],
+    "griffin.fft_window": [-960,960],
+    "griffin.fft_index": 10,
+    "griffin.number_of_sites": 0,
+    "griffin.sort_by": "none",
+    "griffin.ascending": "none",
+    "griffin.step": 15,
+    "griffin.chrom_column": "Chrom",
+    "griffin.strand_column": "Strand",
+    "griffin.position_column": "position",
+    "griffin.CNA_normalization": false,
+    "griffin.exclude_outliers": true,
+    "griffin.exclude_zero_mappability": true,
+    "griffin.individual": false,
+    "griffin.smoothing": true,
+    "griffin.smoothing_length": 165,
+    "griffin.call_nucleosome_profiling": true
+}
