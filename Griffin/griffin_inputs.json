@@ -24,8 +24,7 @@
     "griffin.map_quality": 20,
     "griffin.GC_bias_size_range": [15,500],
 
-    "griffin.sites_files": ["CTCF.hg38.1000.txt"],
-    "griffin.sites_names": ["CTCF_demo"],
+    "griffin.sites_yaml" : "",
     "griffin.chroms": ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22"],
     "griffin.size_range": [100,200],
     "griffin.norm_window": [-5000,5000],
