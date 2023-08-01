@@ -39,5 +39,12 @@ output_plots: `glob("results/plots/*.pdf")`
 samples_yaml: `griffin_nucleosome_profiling_files/config/samples.GC.yaml`
 
 
-## Demo
+## Demo-- Still working on instructions
 Based off of the [snakemake demo](https://github.com/adoebley/Griffin/wiki) of griffin.
+
+Download the reference genome from the link below (if you don't have wget, you can open the link in a browser) and unzip it (the download may take ~10 minutes):\
+`wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz`\
+`gunzip hg38.fa.gz`\
+
+Download the mappability track (1.2gb) from the link below (if you don't have wget, you can open the link in a browser)(the download may take ~15 minutes):
+`wget https://hgdownload.soe.ucsc.edu/gbdb/hg38/hoffmanMappability/k100.Umap.MultiTrackMappability.bw`
