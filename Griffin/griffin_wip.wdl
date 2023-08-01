@@ -20,8 +20,7 @@ workflow griffin {
         File genome_GC_frequency
         Array[Int] GC_bias_size_range
         
-        Array[File] sites_files
-        Array[String] sites_names
+        File sites_yaml
         String chrom_column # column containing the chromosome in your sites file
         String position_column # column containing the site position in your sites file
         String strand_column # column for indicating site direction in your sites file. If this column doesn't exist, the script will assume non-directional sites.
@@ -78,8 +77,7 @@ workflow griffin {
                     sample_name = sample.sample_name,
                     reference_genome = reference_genome,
                     chrom_sizes = chrom_sizes,
-                    sites_files = sites_files,
-                    sites_names = sites_names,
+                    sites_yaml = sites_yaml,
                     chrom_column = chrom_column,
                     position_column = position_column,
                     strand_column = strand_column,
@@ -100,8 +98,7 @@ workflow griffin {
                     GC_corrected_bw = calc_cov.GC_corrected_bw,
                     mappability_bw = mappability_bw,
                     chrom_sizes = chrom_sizes,
-                    sites_files = sites_files,
-                    sites_names = sites_names,
+                    sites_yaml = sites_yaml,
                     chrom_column = chrom_column,
                     position_column = position_column,
                     strand_column = strand_column,
@@ -150,7 +147,6 @@ workflow griffin {
         Array[File] plot = GC_bias.plot
         Array[File] key_lengths = GC_bias.key_lengths
 
-        Array[File?] sites_yaml = calc_cov.sites_yaml #griffin_nucleosome_profiling_files/sites/sites.yaml
         Array[File?] uncorrected_bw = calc_cov.uncorrected_bw #results/calc_cov/temp/~{sample_name}/tmp_bigWig/~{sample_name}.uncorrected.bw
         Array[File?] GC_corrected_bw = calc_cov.GC_corrected_bw #results/calc_cov/temp/~{sample_name}/tmp_bigWig/~{sample_name}.GC_corrected.bw
         Array[File?] uncorrected_cov = merge_sites.uncorrected_cov #results/merge_sites/~{sample_name}/~{sample_name}.uncorrected.coverage.tsv
@@ -269,8 +265,7 @@ task calc_cov {
         String sample_name
         File reference_genome
         File chrom_sizes
-        Array[File] sites_files
-        Array[String] sites_names
+        File sites_yaml
         String chrom_column
         String position_column
         String strand_column
@@ -294,15 +289,6 @@ task calc_cov {
 
         # Make temporary directory
         mkdir -p results/calc_cov/temp/
-        mkdir -p griffin_nucleosome_profiling_files/sites/
-
-        # Create a sites yaml file from input sites_files and sites_names
-        sites_names=(~{sep=" " sites_names})
-        sites_files=(~{sep=" " sites_files})
-        echo "site_lists:" > griffin_nucleosome_profiling_files/sites/sites.yaml
-        for i in "${!sites_names[@]}"; do
-          echo "  ${sites_names[$i]}: ${sites_files[$i]}" >> griffin_nucleosome_profiling_files/sites/sites.yaml
-        done
 
         # Run griffin_coverage_script to calculate coverage
         
@@ -316,7 +302,7 @@ task calc_cov {
         --reference_genome ~{reference_genome} \
         --mappability_bw none \
         --chrom_sizes_path ~{chrom_sizes} \
-        --sites_yaml griffin_nucleosome_profiling_files/sites/sites.yaml \
+        --sites_yaml ~{sites_yaml} \
         --griffin_scripts /Griffin/scripts/ \
         --chrom_column ~{chrom_column} \
         --position_column ~{position_column} \
@@ -342,7 +328,6 @@ task calc_cov {
     output {
         File uncorrected_bw = "results/calc_cov/temp/~{sample_name}/tmp_bigWig/~{sample_name}.uncorrected.bw"
         File GC_corrected_bw = "results/calc_cov/temp/~{sample_name}/tmp_bigWig/~{sample_name}.GC_corrected.bw"
-        File sites_yaml = "griffin_nucleosome_profiling_files/sites/sites.yaml"
         }
 }
 
@@ -354,8 +339,7 @@ task merge_sites {
         File GC_corrected_bw
         File mappability_bw
         File chrom_sizes
-        Array[File] sites_files
-        Array[String] sites_names
+        File sites_yaml
         String chrom_column
         String position_column
         String strand_column
@@ -389,15 +373,6 @@ task merge_sites {
         set -e
         # Make temporary directory
         mkdir -p results/merge_sites/temp/
-        mkdir -p griffin_nucleosome_profiling_files/sites/
-
-        # Create a sites yaml file from input sites_files and sites_names
-        sites_names=(~{sep=" " sites_names})
-        sites_files=(~{sep=" " sites_files})
-        echo "site_lists:" > griffin_nucleosome_profiling_files/sites/sites.yaml
-        for i in "${!sites_names[@]}"; do
-          echo "  ${sites_names[$i]}: ${sites_files[$i]}" >> griffin_nucleosome_profiling_files/sites/sites.yaml
-        done
 
         # Run griffin_merge_sites_script when mappability_correction is False
         # whenn mappability_correction is False, GC_map_corrected_bw_path is set to none
@@ -412,7 +387,7 @@ task merge_sites {
         --results_dir results/merge_sites \
         --mappability_bw ~{mappability_bw} \
         --chrom_sizes_path ~{chrom_sizes} \
-        --sites_yaml griffin_nucleosome_profiling_files/sites/sites.yaml \
+        --sites_yaml ~{sites_yaml} \
         --griffin_scripts /Griffin/scripts/ \
         --chrom_column ~{chrom_column} \
         --position_column ~{position_column} \
