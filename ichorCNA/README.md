@@ -37,6 +37,9 @@ Everything else in the inputs.json file have example inputs that you can refer t
 A complete list of outputs can be found in [this Github wiki page](https://github.com/broadinstitute/ichorCNA/wiki/Output) along with parameter info.
 
 ## Instructions
+[For FH users here](#instructions-for-fh-users)
+
+Else:
 You can run it if your workplace already has a Cromwell server configured or by other WDL execution tools.
 
 This is just a rough explanation of what I've tested this with and how you can do it yourself, from a beginner's perspective.
@@ -51,3 +54,22 @@ with `XX` being the version of cromwell you have. Make sure all of your files (W
 
 ### Server mode
 [Here is a tutorial on how to run Cromwell's server mode](https://cromwell.readthedocs.io/en/stable/tutorials/ServerMode/). Skip the Five Minute Introduction if you've already downloaded Cromwell and familiar with it.
+
+## Instructions for FH users
+### Running via shiny app
+
+Open the [shiny app](https://cromwellapp.fredhutch.org/) and connect to your cromwell server. Under "Submit a Workflow", upload the WDL and inputs.json. If you wanted to configure the workflow, [take a workflow options file](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options) and upload it as well.
+
+
+### Running via command line
+Log into your chosen node and set the current directory to where your ichorCNA.wdl, inputs.json, and your optional workflow_options.json files are stored. Load the modules necessary:
+
+`module load java`
+
+`module load cromwell`
+
+To execute the WDL, do the following:
+
+`java -jar $EBROOTCROMWELL/cromwell.jar run ichorCNA.wdl -i inputs.json`
+
+To configure the workflow, add `--options workflow_options.json` to the line.
