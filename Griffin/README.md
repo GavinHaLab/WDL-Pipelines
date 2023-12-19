@@ -70,4 +70,19 @@ If you don't want to do nucleosome profiling, set `"griffin.call_nucleosome_prof
 
 Edit any of the other inputs as needed, but should be fine left alone.
 
+### Running via shiny app
+
 Open the [shiny app](https://cromwellapp.fredhutch.org/) and connect to your cromwell server. Under "Submit a Workflow", upload the WDL and griffin_inputs.json. If you wanted to configure the workflow, [take a workflow options file](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options) and upload it as well.
+
+### Running via command line
+Log into your chosen node and set the current directory to where your griffin.wdl, griffin_inputs.json, and your optional workflow_options.json files are stored. Load the modules necessary:
+
+`module load java`
+
+`module load cromwell`
+
+To execute the WDL, do the following (assuming the WDL is named griffin.wdl):
+
+`java -jar $EBROOTCROMWELL/cromwell.jar run griffin.wdl -i griffin_inputs.json`
+
+To configure the workflow, add `--options workflow_options.json` to the line.
