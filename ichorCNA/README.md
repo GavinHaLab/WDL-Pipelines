@@ -29,9 +29,47 @@ For more info on the ichorCNA tool, visit the [Github Wiki page for ichorCNA](ht
 `memory`: This may have to be edited in both `read_counter` and `run_ichorCNA` in their runtime sections.
 
 ### inputs.json file
-`ichorCNA.batchSamples`: Each sample encased in `{}` contains a `sampleName`, `sex`, `tumorBam`, `tumorBai`, optional `normalBam`, optional `normalBai`, `normalPanel`, `genomeBuild`, and `genomeStyle`- which is NCBI or UCSC if hg38.
 
-Everything else in the inputs.json file have example inputs that you can refer to. For the `ichorCNA.plotFileType` it can be either png or pdf.
+In batchSamples:
+All sample information including any paired normal bams, or a normal panel, and genome build information for individual bams
+
+"`sampleName`"  
+"`sex`"- use "None" if both male and female are in sample  
+"`tumorBam`"- Path to tumor bam file.  
+"`tumorBai`"- Path to tumor bam.bai file.  
+"`normalBam`"- Path to normal bam file. Can be null  
+"`normalBai`"- Path to normal bam.bai file. Can be null  
+"`normalPanel`"- Median corrected depth from panel of normals. Default: "NULL".In the WDL: This is listed as a string for a path when it's a file found in the ichor container, but if it's an external file, it needs to be changed to a type File?  
+"`genomeBuild`"- hg38 or hg19, only, capitalization matters  
+"`genomeStyle`"- "NCBI" or NCBI, only  
+
+Other inputs:
+Batch level params
+
+"`ichorCNA.exons`"- Path to bed file containing exon regions. Default: "NULL"  
+"`ichorCNA.binSize`"- "10kb" This must match binSizeNumeric  
+"`ichorCNA.binSizeNumeric`"- 10000, but must match the other binSize  
+"`ichorCNA.qual`"  
+"`ichorCNA.normal`"- Initial normal contamination; can be more than one value if additional normal initializations are desired. Default: "0.5"  
+"`ichorCNA.ploidy`"- Initial tumour ploidy; can be more than one value if additional ploidy initializations are desired. Default: "2"  
+"`ichorCNA.estimateNormal`"- Estimate normal. These need to be quoted strings in all caps instead of Boolean b/c of R. Default: "TRUE"  
+"`ichorCNA.estimatePloidy`"- Estimate tumour ploidy. Default: "TRUE"  
+"`ichorCNA.estimateClonality`"- Estimate clonality. Default: "TRUE"  
+"`ichorCNA.scStates`"- Subclonal states to consider. Default: "NULL"  
+"`ichorCNA.maxCN`"- Total clonal CN states. Default: "7"  
+"`ichorCNA.scPenalty`"- penalize subclonal events - n-fold multiplier; n=1 for no penalty  
+"`ichorCNA.includeHOMD`"- If FALSE, then exclude HOMD state. Useful when using large bins (e.g. 1Mb). Default: "FALSE"  
+"`ichorCNA.plotFileType`"- File format for output plots. pdf or png. Default: "pdf"  
+"`ichorCNA.plotYlim`"- ylim to use for chromosome plots. Default: "c(-2,2)"  
+"`ichorCNA.likModel`"- Default: "t". if multisample, use "gauss"  
+"`ichorCNA.minMapScore`"- control segmentation - higher (e.g. 0.9999999) leads to higher specificity and fewer segments  
+"`ichorCNA.maxFracGenomeSubclone`"- Exclude solutions with subclonal genome fraction greater than this value. Default: "0.5"  
+"`ichorCNA.maxFracCNASubclone`"- Exclude solutions with fraction of subclonal events greater than this value. Default: "0.7"  
+"`ichorCNA.normal2IgnoreSC`"- Ignore subclonal analysis when initial normal setting >= this value  
+"`ichorCNA.txnE`"- Self-transition probability. Increase to decrease number of segments. Lower (e.g. 0.99) leads to higher sensitivity and more segments. Default: "0.9999999". Higher (e.g. 10000000) leads to higher specificity and fewer segments and lower (e.g. 100) leads to higher sensitivity and more segments  
+"`ichorCNA.txnStrength`"- Transition pseudo-counts. Exponent should be the same as the number of decimal places of txnE. Default: "1e+07"  
+"`ichorCNA.fracReadsInChrYForMale`"- Threshold for fraction of reads in chrY to assign as male. Default: "0.001"  
+
 
 ## Outputs
 A complete list of outputs can be found in [this Github wiki page](https://github.com/broadinstitute/ichorCNA/wiki/Output) along with parameter info.
