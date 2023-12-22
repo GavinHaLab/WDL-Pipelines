@@ -11,8 +11,54 @@ Griffin has two steps that this WDL divides into the following tasks:
   - `generate_plots`
 
 ### Inputs
-Example files provided in `griffin_inputs.json`.\
-If you wish not to complete the nucleosome profiling step, set `griffin.call_nucleosome_profiling` to false.
+For each sample:
+
+"`sample_name`"  
+"`bam_file`"- path to sample bam file  
+
+For all samples:
+
+"`griffin.griffin_docker`"- Default: "vortexing/griffin:v0.2.0"  
+"`griffin.GC_counts.disk_size`"- Default: 120  
+"`griffin.GC_counts.cpu_num`"- Default: 8  
+"`griffin.GC_counts.mem_size`": Default: 8  
+
+"`griffin.mappability_bw`"- Path to your file that looks like: k100.Umap.MultiTrackMappability.bw  
+"`griffin.reference_genome`":- Path to your file that looks like: Homo_sapiens_assembly38.fasta  
+"`griffin.gaps`"- Default: "/Griffin/Ref/hg38_gaps.bed"  
+"`griffin.genome_GC_frequency`"- Default: "/Griffin/Ref/genome_GC_frequency"  
+"`griffin.mappable_regions`"- Default: "/Griffin/Ref/k100_minus_exclusion_lists.mappable_regions.gh38.bed"  
+"`griffin.chrom_sizes`"- Default: "/Griffin/Ref/hg38.standard.chrom.sizes"  
+"`griffin.patches`"- Default: "/Griffin/Ref/hg38_fix_patches.bed"  
+"`griffin.centromeres`"- Default: "/Griffin/Ref/hg38_centromeres.bed"  
+"`griffin.alternative_haplotypes`"- Default: "/Griffin/Ref/hg38_alternative_haplotypes.bed"  
+"`griffin.encode_exclude`"- Default: "/Griffin/Ref/encode_unified_GRCh38_exclusion_list.bed"  
+"`griffin.map_quality`"- minimum mapping quality to keep a read. Default: 20  
+"`griffin.GC_bias_size_range`"- i.e. [15,500]  
+
+"`griffin.sites_yaml`"- Path to your sites yaml file. Used to run calc coverage step on all sites  
+"`griffin.chroms`"- Default: ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22"]  
+"`griffin.size_range`"- Range of fragment lengths to be used for analysis. 100 to 200 captures nucleosome sized fragments. 15 to 500 also okay  
+"`griffin.norm_window`"- Window around each site for normalizing to 1 (-5000 5000 bp for typical TFBS WGS analysis)  
+"`griffin.save_window`"- window around each site to save to outputs  
+"`griffin.center_window`"- range of positions used to calculate the central coverage feature  
+"`griffin.fft_window`"- array of two integers  
+"`griffin.fft_index`"-  integer  
+"`griffin.number_of_sites`"- how many sites to analyze. use 0 to analyze all sites  
+"`griffin.sort_by`"- column to use for sorting sites. use "none" if analyzing all sites  
+"`griffin.ascending`"- true/false whether to sort sites in ascending order (False if you want to keep sites with a large value in the sort_by column), use 'none' to analyze all sites  
+"`griffin.step`"- integer  
+"`griffin.chrom_column`"- Column containing the chromosome in your sites file. Default: "Chrom"  
+"`griffin.strand_column`"- column for indicating site direction. If this column doesn't exist, the script will assume non-directional sites. Default: "Strand"  
+"`griffin.position_column`"- Column containing the site position. Default: "position"  
+"`griffin.CNA_normalization`"- true/false  
+"`griffin.exclude_outliers`"- true/false  
+"`griffin.exclude_zero_mappability`"- true/false  
+"`griffin.individual`"- true/false  
+"`griffin.smoothing`"- true/false  
+"`griffin.smoothing_length`"- approximately the fragment length  
+"`griffin.call_nucleosome_profiling`"- true/false
+
 ### Outputs
 GC_counts_file: `results/GC_counts/~{sample_name}.GC_counts.txt`
 
