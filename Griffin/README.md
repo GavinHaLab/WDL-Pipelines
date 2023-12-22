@@ -43,10 +43,6 @@ samples_yaml: `griffin_nucleosome_profiling_files/config/samples.GC.yaml`
 
 Based on the [snakemake demo](https://github.com/adoebley/Griffin/wiki) of griffin.
 
-### Shiny app -- For FH users only
-
-The DaSL has a helpful [tutorial on running workflows via the Shiny App](https://hutchdatascience.org/FH_WDL101_Cromwell/using-shiny-to-manage-workflows.html).
-
 Download the reference genome from the link below (if you don't have wget, you can open the link in a browser) and unzip it (the download may take ~10 minutes):\
 `wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz`\
 `gunzip hg38.fa.gz`\
@@ -60,7 +56,11 @@ Convert the demo cram file to bam and create an index (takes ~1 minute):
 
 `samtools index demo/bam/Healthy_GSM1833219_downsampled.sorted.mini.bam`\
 
-Download the griffin wdl and griffin_inputs.json. Edit `"griffin.samples"` to include the samples and the path to the bam files. Edit `"griffin.mappability_bw"` and `"griffin.reference_genome"` so that your cromwell server can access it.
+Download the griffin wdl and griffin_inputs.json. 
+
+In the json file:
+
+Edit `"griffin.samples"` to include the samples and the path to the bam files. Edit `"griffin.mappability_bw"` and `"griffin.reference_genome"` so that your cromwell server can access it.
 
 Any directories starting with `/Griffin/Ref/` can be replaced if necessary, but should be able to run on its own as those files are provided in the docker. 
 
@@ -69,10 +69,6 @@ Add `"griffin.sites_yaml"`.
 If you don't want to do nucleosome profiling, set `"griffin.call_nucleosome_profiling"` to false.
 
 Edit any of the other inputs as needed, but should be fine left alone.
-
-### Running via shiny app
-
-Open the [shiny app](https://cromwellapp.fredhutch.org/) and connect to your cromwell server. Under "Submit a Workflow", upload the WDL and griffin_inputs.json. If you wanted to configure the workflow, [take a workflow options file](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options) and upload it as well.
 
 ### Running via command line
 Log into your chosen node and set the current directory to where your griffin.wdl, griffin_inputs.json, and your optional workflow_options.json files are stored. Load the modules necessary:
@@ -83,6 +79,16 @@ Log into your chosen node and set the current directory to where your griffin.wd
 
 To execute the WDL, do the following (assuming the WDL is named griffin.wdl):
 
+`java -jar path/to/cromwell.jar run griffin.wdl -i griffin_inputs.json`
+
+For FH server:
+
 `java -jar $EBROOTCROMWELL/cromwell.jar run griffin.wdl -i griffin_inputs.json`
 
 To configure the workflow, add `--options workflow_options.json` to the line.
+
+### Running via shiny app - for FH users
+
+The DaSL has a helpful [tutorial on running workflows via the Shiny App](https://hutchdatascience.org/FH_WDL101_Cromwell/using-shiny-to-manage-workflows.html).
+
+Open the [shiny app](https://cromwellapp.fredhutch.org/) and connect to your cromwell server. Under "Submit a Workflow", upload the WDL and griffin_inputs.json. If you wanted to configure the workflow, [take a workflow options file](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options) and upload it as well.
