@@ -1,7 +1,7 @@
 version 1.0
 
-import "https://raw.githubusercontent.com/GavinHaLab/WDL_Pipelines/main/TitanCNA/getAlleleCounts.wdl?token=GHSAT0AAAAAACLT5MBA3LRCEJL274XG7JJYZMUSRNA" as getAlleleCounts
-import "https://raw.githubusercontent.com/GavinHaLab/WDL_Pipelines/59321d241165993d126f277466911cbd4ebe2be7/ichorCNA/ichorCNA.wdl?token=GHSAT0AAAAAACLT5MBAMQGXUWLN7MVCDFUOZMDOKGA" as ichorCNA
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCounts
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNA
 
 struct sampleData {
   ## All sample information including any paired normal bams, or a normal panel, and genome build information for individual bams
