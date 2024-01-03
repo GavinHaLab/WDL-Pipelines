@@ -152,30 +152,16 @@ workflow TitanCNA {
     Array[File] runTitanCNA_outputs = [] # defining outputs array before first call of scatter
 
     Array[File] concatenatedCounts = getAlleleCounts.concatenatedCounts
+    Array[File] ichorSeg = ichorCNA.segTxt
+    Array[File] ichorBin = ichorCNA.seg
+    Array[File] ichorParam = ichorCNA.params
     Array[File] corrDepth = ichorCNA.corrDepth
+
     scatter (tumor in Samples) {
         Array[String] chrs = if tumor.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
 
-        ############ currently working on a task to do the same as the following
-        # # this is to get the specific file from concatenatedCounts from getAlleleCounts and corrDepth from ichor for the tumor in the scatter
-        # # taking all files that match the name (just one)
-        # # I'm hoping all the below code works in wdl?
-        # Array[File] alleleCountsFiles = select_all(concatenatedCounts, file -> file.name.contains(tumor.sampleName + ".tumCounts.txt")) 
-        # Array[File] corrDepthFiles = select_all(corrDepth, file -> file.name.contains(tumor.sampleName + ".correctedDepth.txt"))
-
-        # # turning array of one file to file
-        # File alleleCountsFile = alleleCountsFiles[0] 
-        # File corrDepthFile = corrDepthFiles[0]
-
-        #unpacking array to get tumor files from ichor
-        # Array[File] ichorSegFiles = select_all(ichorSeg, file -> file.name.contains(tumor.sampleName + ".seg.txt")) 
-        # Array[File] ichorBinFiles = select_all(ichorBin, file -> file.name.contains(tumor.sampleName + ".cna.seg")) 
-        # Array[File] ichorParamFiles = select_all(ichorParam, file -> file.name.contains(tumor.sampleName + ".params.txt")) 
-
-        # File ichorSegFile = ichorSegFiles[0]
-        # File ichorBinFile = ichorBinFiles[0]
-        # File ichorParamFile = ichorParamFiles[0]
-
+        # because the output for both ichor and allele is an array of files of all of the tumors,
+        # we need to select correct files for each tumor
         call filterFiles {
         input:
             concatenatedCounts = concatenatedCounts,
@@ -186,7 +172,7 @@ workflow TitanCNA {
             sampleName = tumor.sampleName
         }
 
-        # Assigning the outputs to final variable names
+        # Assigning the tumor specific file
         File alleleCountsFile = filterFiles.alleleCountsFile
         File corrDepthFile = filterFiles.corrDepthFile
         File ichorSegFile = filterFiles.ichorSegFile
@@ -220,12 +206,6 @@ workflow TitanCNA {
         # append tumor's output- I could just move this to the runTitanCNA task if there's issues. Just would require more inputting and outputting
         Array[File] runTitanCNA_outputs = runTitanCNA_outputs + [runTitanCNA.titanOutput]
 
-        Array[File] ichorSeg = ichorCNA.segTxt
-        Array[File] ichorBin = ichorCNA.seg
-        Array[File] ichorParam = ichorCNA.params
-
-        
-        
         # Call combineTitanAndIchorCNA
         call combineTitanAndIchorCNA {
             input:
@@ -270,7 +250,7 @@ workflow TitanCNA {
 }
 
 
-task filterFiles { ###### in progress
+task filterFiles {
     input {
         Array[File] concatenatedCounts
         Array[File] corrDepth
@@ -282,44 +262,27 @@ task filterFiles { ###### in progress
 
     command <<<
         set -e
-        for file in "~{sep=' ' concatenatedCounts}"; do
-            if [[ "$(basename "$file")" == *~{sampleName}.tumCounts.txt ]]; then
-                cp "$file" alleleCountsFile.txt
-                break
-            fi
-        done
-        for file in "~{sep=' ' corrDepth}"; do
-            if [[ "$(basename "$file")" == *~{sampleName}.correctedDepth.txt ]]; then
-                cp "$file" corrDepthFile.txt
-                break
-            fi
-        done
-        for file in "~{sep=' ' ichorSeg}"; do
-            if [[ "$(basename "$file")" == *~{sampleName}.seg.txt ]]; then
-                cp "$file" ichorSegFile.txt
-                break
-            fi
-        done
-        for file in "~{sep=' ' ichorBin}"; do
-            if [[ "$(basename "$file")" == *~{sampleName}.cna.seg ]]; then
-                cp "$file" ichorBinFile.txt
-                break
-            fi
-        done
-        for file in "~{sep=' ' ichorParam}"; do
-            if [[ "$(basename "$file")" == *~{sampleName}.params.txt ]]; then
-                cp "$file" ichorParamFile.txt
-                break
-            fi
-        done
-    >>>
+        find_file() {
+            local pattern="$1"
+            for file in "$@"; do
+                if [[ "$(basename "$file")" == *$pattern ]]; then
+                    echo "$file"
+                    break
+                fi
+            done
+        }
+        cp "$(find_file "~{sampleName}.tumCounts.txt" "~{sep=' ' concatenatedCounts}")" "~{sampleName}.tumCounts.txt"
+        cp "$(find_file "~{sampleName}.correctedDepth.txt" "~{sep=' ' corrDepth}")" "~{sampleName}.correctedDepth.txt"
+        cp "$(find_file "~{sampleName}.seg.txt" "~{sep=' ' ichorSeg}")" "~{sampleName}.seg.txt"
+        cp "$(find_file "~{sampleName}.cna.seg" "~{sep=' ' ichorBin}")" "~{sampleName}.cna.seg"
+        cp "$(find_file "~{sampleName}.params.txt" "~{sep=' ' ichorParam}")" "~{sampleName}.params.txt"
 
     output {
-        File alleleCountsFile = "alleleCountsFile.txt"
-        File corrDepthFile = "corrDepthFile.txt"
-        File ichorSegFile = "ichorSegFile.txt"
-        File ichorBinFile = "ichorBinFile.txt"
-        File ichorParamFile = "ichorParamFile.txt"
+        File alleleCountsFile = "~{sampleName}.tumCounts.txt"
+        File corrDepthFile = "~{sampleName}.correctedDepth.txt"
+        File ichorSegFile = "~{sampleName}.seg.txt"
+        File ichorBinFile = "~{sampleName}.cna.seg"
+        File ichorParamFile = "~{sampleName}.params.txt"
     }
 }
 
