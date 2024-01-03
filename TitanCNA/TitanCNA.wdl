@@ -160,8 +160,14 @@ workflow TitanCNA {
     scatter (tumor in Samples) {
         Array[String] chrs = if tumor.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
 
-        # because the output for both ichor and allele is an array of files of all of the tumors,
-        # we need to select correct files for each tumor
+        ### because the output for both ichor and allele is an array of files of all of the tumors,
+        ### we need to select correct files for each tumor
+        # I could have done this outside the scatter and append each file to the tumor info?
+        # Like instead of a wdl scatter, it'll be a loop in the filterFiles command block:
+        # - for each file in the array
+        # - find what sample in Samples it belongs to
+        # - append the file to the sample data in Samples
+        # that way we only have to go through the arrays of files once, instead of going through it every time for each sample
         call filterFiles {
             input:
                 concatenatedCounts = concatenatedCounts,
