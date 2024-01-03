@@ -81,7 +81,7 @@ workflow TitanCNA {
         String centromere
     }
 
-    String titanDocker = "argage/titancna:vsomething.something.hopefully"
+    String titan_docker = "argage/titancna:vsomething.something.hopefully"
     
     String samTools = "/path/to/samtools"
     String bcfTools = "/path/to/bcftools"
@@ -163,13 +163,13 @@ workflow TitanCNA {
         # because the output for both ichor and allele is an array of files of all of the tumors,
         # we need to select correct files for each tumor
         call filterFiles {
-        input:
-            concatenatedCounts = concatenatedCounts,
-            corrDepth = corrDepth,
-            ichorSeg = ichorSeg,
-            ichorBin = ichorBin,
-            ichorParam = ichorParam,
-            sampleName = tumor.sampleName
+            input:
+                concatenatedCounts = concatenatedCounts,
+                corrDepth = corrDepth,
+                ichorSeg = ichorSeg,
+                ichorBin = ichorBin,
+                ichorParam = ichorParam,
+                sampleName = tumor.sampleName
         }
 
         # Assigning the tumor specific file
@@ -201,7 +201,8 @@ workflow TitanCNA {
                 centromere = centromere,
                 alphaK = alphaK,
                 txnExpLen = txnExpLen,
-                plotYlim = plotYlim
+                plotYlim = plotYlim,
+                titan_docker = titan_docker
         }
         # append tumor's output- I could just move this to the runTitanCNA task if there's issues. Just would require more inputting and outputting
         Array[File] runTitanCNA_outputs = runTitanCNA_outputs + [runTitanCNA.titanOutput]
@@ -220,7 +221,8 @@ workflow TitanCNA {
                 mergeIchorHOMD = mergeIchorHOMD,
                 sex = sex,
                 centromere = centromere,
-                log = "combineTitanAndIchorCNA.log"
+                log = "combineTitanAndIchorCNA.log",
+                titan_docker = titan_docker
         }
     }
     # Call selectSolution
@@ -229,7 +231,8 @@ workflow TitanCNA {
             resultFiles = runTitanCNA_outputs,
             solutionRscript = selectSolutionRscript,
             threshold = threshold,
-            log = "selectSolution.log"
+            log = "selectSolution.log",
+            titan_docker = titan_docker
     }
 
     # Call copyOptSolution
@@ -309,6 +312,7 @@ task runTitanCNA {
         Float alphaK
         Float txnExpLen
         Float plotYlim
+        String titan_docker
     }
     command <<<
         Rscript ~{titanRscript} --hetFile ~{alleleCounts} --cnFile ~{corrDepth} \
@@ -334,10 +338,10 @@ task runTitanCNA {
         maxRetries: 3
         }
     output {
-        File titanOutput = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumor}_cluster~{clustNum}.titan.txt"
-        File segTxt = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumor}_cluster~{clustNum}.segs.txt"
-        File param = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumor}_cluster~{clustNum}.params.txt"
-        File seg = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumor}_cluster~{clustNum}.seg"
+        File titanOutput = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.titan.txt"
+        File segTxt = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.segs.txt"
+        File param = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.params.txt"
+        File seg = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.seg"
     }
 }
 
@@ -355,6 +359,7 @@ task combineTitanAndIchorCNA {
         String sex
         String centromere
         String log
+        String titan_docker
     }
     command <<<
         Rscript ~{combineScript} --libdir ~{libdir} --titanSeg ~{titanSeg} --titanBin ~{titanBin} \
@@ -377,6 +382,7 @@ task selectSolution {
         String solutionRscript
         Float threshold
         String log
+        String titan_docker
     }
     command <<<
         # Assuming the R script handles multiple result files
