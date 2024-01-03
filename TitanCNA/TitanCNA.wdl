@@ -81,8 +81,9 @@ workflow TitanCNA {
         String centromere
     }
 
-    String titan_docker = "argage/titancna:vsomething.something.hopefully"
+    String titan_docker = "argage/titancna:v1.23.1"
     
+    #for the allelecounts docker- might move to the allele wdl
     String samTools = "/path/to/samtools"
     String bcfTools = "/path/to/bcftools"
 
