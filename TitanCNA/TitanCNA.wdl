@@ -1,7 +1,7 @@
 version 1.0
 
-import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCounts
-import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNA
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCountswdl
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNAwdl
 
 struct sampleData {
   ## All sample information including any paired normal bams, or a normal panel, and genome build information for individual bams
@@ -48,7 +48,6 @@ workflow TitanCNA {
         Float ichorCNA_fracReadsInChrYForMale 
         
         # allele inputs
-        # ## allele counts - samtools, pysam ##
         Int getAlleleCounts_mapQuality
         Int getAlleleCounts_baseQuality
         Int getAlleleCounts_vcfQuality
@@ -56,42 +55,39 @@ workflow TitanCNA {
         # titan inputs
         Int maxClusters
         Int maxPloidy
-        String libdir
         Int numCores
         Float normalInit
-        String sex
-        String genomeStyle
-        String genomeBuild
-        Boolean estimatePloidy
-        Boolean estimateClonality
-        Boolean estimateNormal
+        String estimatePloidy
+        String estimateClonality
+        String estimateNormal
         Float alphaK
+        Float? alphaR
         Float txnExpLen
-        Float plotYlim
-        String combineScript
-        Boolean mergeIchorHOMD
-        String solutionRscript
+        String plotYlim
+        String mergeIchorHOMD
         Float threshold
         String outputDirectory
+        String? alleleModel
 
         #path inputs
-        String refFasta
+        String refFasta #https://console.cloud.google.com/storage/browser/gcp-public-data--broad-references
         String snpVCF
         String cytobandFile
         String centromere
     }
-
+    # this is only changed if docker is changed
+    # in wdl instead of inputs as it should be an uncommon change
+    
     String titan_docker = "argage/titancna:v1.23.1"
     
-    #for the allelecounts docker- might move to the allele wdl
-    String samTools = "/path/to/samtools"
-    String bcfTools = "/path/to/bcftools"
+    String samTools = "/usr/share/doc/samtools"
+    String bcfTools = "/usr/share/doc/bcftools"
 
-    String getAlleleCounts_pyCountScript = "code/countPysam.py"
-    String rscript = "../R_scripts/titanCNA.R"
-    String combineTitanIchorCNA = "code/combineTITAN-ichor.R"
-    String selectSolutionRscript = "../R_scripts/selectSolution.R"
-    String libdir = "../../R/"
+    String getAlleleCounts_pyCountScript = "/root/scripts/snakemake/code/countPysam.py"#"https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py"
+    String rscript = "/root/scripts/R_scripts/titanCNA.R"
+    String combineTitanIchorCNA = "/root/scripts/snakemake/code/combineTITAN-ichor.R"
+    String selectSolutionRscript = "/root/scripts/R_scripts/selectSolution.R"
+    String libdir = "/root/R/"
 
     
 
@@ -107,9 +103,9 @@ workflow TitanCNA {
 
     # call ichorcna
     # scatter included in ichor
-    call ichorCNA {
+    call ichorCNAwdl.ichorCNA as ichorCNA {
         input:
-            batchSamples = Samples, #there might be issues as importing this as an array previously and ichor making it an array may make an Array[Array[]]
+            batchSamples = batchSamples,
             exons = ichorCNA_exons, 
             binSize = ichorCNA_binSize, 
             binSizeNumeric = ichorCNA_binSizeNumeric, 
@@ -136,11 +132,11 @@ workflow TitanCNA {
     }
     # call getAlleleCounts subworkflow
     # scatter included in allele
-    call getAlleleCounts {
+    call getAlleleCountswdl.getAlleleCounts as getAlleleCounts {
         input:
             tumors = batchSamples,
             refFasta = refFasta,
-            snpDB = snpDB,
+            snpVCF = snpVCF,
             samtools = samTools,
             bcftools = bcfTools,
             countScript = getAlleleCounts_pyCountScript,
@@ -149,16 +145,14 @@ workflow TitanCNA {
             vcfQ = getAlleleCounts_vcfQuality
     }
 
-    # Call runTitanCNA for each tumor
-    Array[File] runTitanCNA_outputs = [] # defining outputs array before first call of scatter
-
     Array[File] concatenatedCounts = getAlleleCounts.concatenatedCounts
     Array[File] ichorSeg = ichorCNA.segTxt
     Array[File] ichorBin = ichorCNA.seg
     Array[File] ichorParam = ichorCNA.params
     Array[File] corrDepth = ichorCNA.corrDepth
 
-    scatter (tumor in Samples) {
+    # Call runTitanCNA for each tumor
+    scatter (tumor in batchSamples) {
         Array[String] chrs = if tumor.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
 
         ### because the output for both ichor and allele is an array of files of all of the tumors,
@@ -211,8 +205,6 @@ workflow TitanCNA {
                 plotYlim = plotYlim,
                 titan_docker = titan_docker
         }
-        # append tumor's output- I could just move this to the runTitanCNA task if there's issues. Just would require more inputting and outputting
-        Array[File] runTitanCNA_outputs = runTitanCNA_outputs + [runTitanCNA.titanOutput]
 
         # Call combineTitanAndIchorCNA
         call combineTitanAndIchorCNA {
@@ -226,7 +218,7 @@ workflow TitanCNA {
                 combineScript = combineTitanIchorCNA,
                 libdir = libdir,
                 mergeIchorHOMD = mergeIchorHOMD,
-                sex = sex,
+                sex = tumor.sex,
                 centromere = centromere,
                 log = "combineTitanAndIchorCNA.log",
                 titan_docker = titan_docker
@@ -235,7 +227,7 @@ workflow TitanCNA {
     # Call selectSolution
     call selectSolution {
         input:
-            resultFiles = runTitanCNA_outputs,
+            resultFiles = runTitanCNA.titanOutput,
             solutionRscript = selectSolutionRscript,
             threshold = threshold,
             log = "selectSolution.log",
@@ -252,8 +244,8 @@ workflow TitanCNA {
 
     # Define workflow outputs here
     output {
-        File combinedSegFile = combineTitanAndIchorCNA.segFile
-        File combinedBinFile = combineTitanAndIchorCNA.binFile
+        Array[File] combinedSegFile = combineTitanAndIchorCNA.segFile
+        Array[File] combinedBinFile = combineTitanAndIchorCNA.binFile
         File optimalClusterSolution = selectSolution.optimalClusterSolution
         String copiedSolution = copyOptSolution.copiedSolution
     }
@@ -286,6 +278,7 @@ task filterFiles {
         cp "$(find_file "~{sampleName}.seg.txt" "~{sep=' ' ichorSeg}")" "~{sampleName}.seg.txt"
         cp "$(find_file "~{sampleName}.cna.seg" "~{sep=' ' ichorBin}")" "~{sampleName}.cna.seg"
         cp "$(find_file "~{sampleName}.params.txt" "~{sep=' ' ichorParam}")" "~{sampleName}.params.txt"
+    >>>
 
     output {
         File alleleCountsFile = "~{sampleName}.tumCounts.txt"
@@ -307,7 +300,7 @@ task runTitanCNA {
         String libdir
         Int numCores
         Float normal
-        String chrs
+        Array[String] chrs
         String sex
         String genomeStyle
         String genomeBuild
@@ -318,14 +311,14 @@ task runTitanCNA {
         String centromere
         Float alphaK
         Float txnExpLen
-        Float plotYlim
+        String plotYlim
         String titan_docker
     }
     command <<<
         Rscript ~{titanRscript} --hetFile ~{alleleCounts} --cnFile ~{corrDepth} \
         --outFile results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.titan.txt \
         --outSeg results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.segs.txt \
-        --outParam results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorname}_cluster~{clustNum}.params.txt \
+        --outParam results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.params.txt \
         --outIGV results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.seg \
         --outPlotDir results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}/ \
         --libdir ~{libdir} --id ~{tumorName} --numClusters ~{clustNum} --numCores ~{numCores} \
@@ -337,12 +330,6 @@ task runTitanCNA {
     >>>
     runtime {
         docker: titan_docker
-        bootDiskSizeGb: 12
-        cpu: cpu_num
-        memory: mem_size + " GB"
-        disks: "local-disk " + disk_size + " HDD"
-        preemptible: 2
-        maxRetries: 3
         }
     output {
         File titanOutput = "results/titan/hmm/titanCNA_ploidy~{ploidy}/~{tumorName}_cluster~{clustNum}.titan.txt"

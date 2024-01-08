@@ -1,11 +1,11 @@
 {
-"TitanCNA.Samples": [
+"TitanCNA.batchSamples": [
     {
-      "sampleName": "",
+      "sampleName": "ET2504",
       "sex": "None",      
-      "tumorBam": "/path/to/tumor.bam",
+      "tumorBam": "/fh/fast/ha_g/projects/NelsonLab/CRPC_patients-pdx_WGS/BAMs_symlink/189.4_ps8n_ET2504.bam",
       "tumorBai": "/path/to/tumor.bam.bai",
-      "normalBam": "/path/to/normal.bam",
+      "normalBam": "/fh/fast/ha_g/projects/NelsonLab/CRPC_patients-pdx_WGS/BAMs_symlink/15-003H1_LIVER.bam",
       "normalBai": null,
       "normalPanel": "/ichorCNA/inst/extdata/HD_ULP_PoN_hg38_1Mb_normAutosomes_median.rds",
       "genomeBuild": "hg38", 
@@ -47,18 +47,17 @@
     "TitanCNA.alphaR": 10000,
     "TitanCNA.txnExpLen": 1e15,
     "TitanCNA.mergeIchorHOMD": "FALSE",
-    "TitanCNA.threshold": 0.1,
     "TitanCNA.normalInit": 0.5,
     "TitanCNA.estimateNormal": "map",
     "TitanCNA.estimatePloidy": "TRUE",
     "TitanCNA.estimateClonality": "FALSE",
     "TitanCNA.alleleModel": "binomial",
     "TitanCNA.plotYlim": "c(-2, 4)",
-    "TitanCNA.solutionThreshold": 0.05,
-    "TitanCNA.outputDirectory": "/path/to/outputDirectory",
+    "TitanCNA.threshold": 0.05,
+    "TitanCNA.outputDirectory": "/fh/scratch/delete90/ha_g/users/agage1/titanCNAtest",
 
-    "TitanCNA.refFasta": "/path/to/Homo_sapiens_assembly19.fasta",
-    "TitanCNA.snpVCF": "/path/to/hapmap_3.3.b37.vcf.gz",
+    "TitanCNA.refFasta": "/fh/fast/ha_g/grp/reference/GRCh38/Broad_bundle_hg38/v0/Homo_sapiens_assembly38.fasta",
+    "TitanCNA.snpVCF": "/fh/fast/ha_g/grp/reference/GRCh38/hapmap_3.3.b37.vcf.gz",
     "TitanCNA.cytobandFile": "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/cytoBand_hg38.txt",
     "TitanCNA.centromere": "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"
 }
