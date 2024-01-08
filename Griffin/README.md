@@ -131,7 +131,7 @@ For FH server:
 
 `java -jar $EBROOTCROMWELL/cromwell.jar run griffin.wdl -i griffin_inputs.json`
 
-To configure the workflow, add `--options workflow_options.json` to the line.
+To [configure the workflow](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options), add `--options workflow_options.json` to the line.
 
 ### Running via shiny app - for FH users
 
