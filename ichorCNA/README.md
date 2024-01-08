@@ -44,7 +44,7 @@ All sample information including any paired normal bams, or a normal panel, and 
 "`genomeStyle`"- "NCBI" or NCBI, only  
 
 Other inputs:
-Batch level params
+Workflow level params
 
 "`ichorCNA.exons`"- Path to bed file containing exon regions. Default: "NULL"  
 "`ichorCNA.binSize`"- "10kb" This must match binSizeNumeric  
