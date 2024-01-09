@@ -1,7 +1,7 @@
 version 1.0
 
-import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCountswdl
-import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNAwdl
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCounts
+import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNA
 
 struct sampleData {
   ## All sample information including any paired normal bams, or a normal panel, and genome build information for individual bams
@@ -103,7 +103,7 @@ workflow TitanCNA {
 
     # call ichorcna
     # scatter included in ichor
-    call ichorCNAwdl.ichorCNA as ichorCNA {
+    call ichorCNA.ichorCNA {
         input:
             batchSamples = batchSamples,
             exons = ichorCNA_exons, 
@@ -132,7 +132,7 @@ workflow TitanCNA {
     }
     # call getAlleleCounts subworkflow
     # scatter included in allele
-    call getAlleleCountswdl.getAlleleCounts as getAlleleCounts {
+    call getAlleleCounts.getAlleleCounts {
         input:
             tumors = batchSamples,
             refFasta = refFasta,
