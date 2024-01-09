@@ -39,17 +39,17 @@ All sample information including any paired normal bams, or a normal panel, and 
 "`tumorBai`"- Path to tumor bam.bai file.  
 "`normalBam`"- Path to normal bam file. Can be null  
 "`normalBai`"- Path to normal bam.bai file. Can be null  
-"`normalPanel`"- Median corrected depth from panel of normals. Default: "NULL".In the WDL: This is listed as a string for a path when it's a file found in the ichor container, but if it's an external file, it needs to be changed to a type File?  
-"`genomeBuild`"- hg38 or hg19, only, capitalization matters  
-"`genomeStyle`"- "NCBI" or NCBI, only  
+"`normalPanel`"- Median corrected depth from panel of normals. Default: null.
+"`genomeBuild`"- hg19 or hg38 only, capitalization matters  
+"`genomeStyle`"- "NCBI" when hg19 or "UCSC" when hg38
 
 Other inputs:
-Batch level params
+Workflow level params
 
 "`ichorCNA.exons`"- Path to bed file containing exon regions. Default: "NULL"  
 "`ichorCNA.binSize`"- "10kb" This must match binSizeNumeric  
 "`ichorCNA.binSizeNumeric`"- 10000, but must match the other binSize  
-"`ichorCNA.qual`"  
+"`ichorCNA.qual`"- Integer- i.e. 20  
 "`ichorCNA.normal`"- Initial normal contamination; can be more than one value if additional normal initializations are desired. Default: "0.5"  
 "`ichorCNA.ploidy`"- Initial tumour ploidy; can be more than one value if additional ploidy initializations are desired. Default: "2"  
 "`ichorCNA.estimateNormal`"- Estimate normal. These need to be quoted strings in all caps instead of Boolean b/c of R. Default: "TRUE"  
