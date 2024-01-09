@@ -41,23 +41,25 @@ For each sample:
 "`TitanCNA.ichorCNA_txnStrength`"- Transition pseudo-counts. Exponent should be the same as the number of decimal places of txnE. Default: "1e+07"    
 "`TitanCNA.ichorCNA_fracReadsInChrYForMale`"- Threshold for fraction of reads in chrY to assign as male. Default: "0.001"
 
-"`TitanCNA.getAlleleCounts_mapQuality`"- 10,  
-"`TitanCNA.getAlleleCounts_baseQuality`"- 10,  
-"`TitanCNA.getAlleleCounts_vcfQuality`"- 100,  
+Minimum thresholds used when extracting read counts from the tumor BAM file at heterozygous SNP sites. In addition, the `vcf_quality` of the heterozygous SNP site from the matched normal sample is also used in the filtering.  
+"`TitanCNA.getAlleleCounts_mapQuality`"- Integer, i.e. 10  
+"`TitanCNA.getAlleleCounts_baseQuality`"- Integer, i.e. 10  
+"`TitanCNA.getAlleleCounts_vcfQuality`"- Integer, i.e. 100  
 
-"`TitanCNA.maxClusters`"- 2,  
-"`TitanCNA.maxPloidy`"- 3,  
-"`TitanCNA.numCores`"- 1,  
-"`TitanCNA.alphaK`"- 10000,  
-"`TitanCNA.alphaR`"- 10000,  
-"`TitanCNA.txnExpLen`"- 1e15,  
+"`TitanCNA.maxClusters`"- specifies the maximum number of clonal clusters to consider. For example, if set to 5, then 5 solutions are generated, each one considering a different number of cluster(s).  
+"`TitanCNA.maxPloidy`"- specifies the maximum ploidy to initialize. This be set to either 2 (only considers diploid solutions), 3 (considers diploid and triploid, and usually accounts for tetraploid), or 4 (for diploid, triploid, tetraploid or higher ploidies). Usually, 3 is suitable for most samples unless you know that your samples are tetraploid or even higher. For example, if set to 3, then solutions for diploid and triploid will be generated. code/selectSolution.R will try to select the optimal solution; however, users should inspect to make sure results are accurate.  
+"`TitanCNA.numCores`"- specifies the number of cores to use on a single machine.  
+
+"`TitanCNA.alphaK`"- Integer, i.e. 10000  
+"`TitanCNA.alphaR`"- Integer, i.e. 10000  
+"`TitanCNA.txnExpLen`"- Formatted like: 1e15  
 "`TitanCNA.mergeIchorHOMD`"- "FALSE", consider setting to "TRUE" when working with pure tumor   
-"`TitanCNA.normalInit`"- 0.5,  
+"`TitanCNA.normalInit`"- Float, i.e. 0.5  
 "`TitanCNA.estimateNormal`"- "map",  
 "`TitanCNA.estimatePloidy`"- "TRUE",  
 "`TitanCNA.estimateClonality`"- "FALSE",  
 "`TitanCNA.alleleModel`"- "binomial",  
-"`TitanCNA.plotYlim`"- "c(-2, 4)",  
+"`TitanCNA.plotYlim`"- "ylim to use for chromosome plots. Default: "c(-2,2)"   
 "`TitanCNA.threshold`"- 0.05,  
 "`TitanCNA.outputDirectory`"- "path/to/outdir",
 

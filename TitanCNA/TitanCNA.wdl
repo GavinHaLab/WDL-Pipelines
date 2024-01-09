@@ -80,8 +80,8 @@ workflow TitanCNA {
     
     String titan_docker = "argage/titancna:v1.23.1"
     
-    String samTools = "/usr/share/doc/samtools"
-    String bcfTools = "/usr/share/doc/bcftools"
+    String samTools = "samtools"
+    String bcfTools = "bcftools"
 
     String getAlleleCounts_pyCountScript = "/root/scripts/snakemake/code/countPysam.py"#"https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py"
     String rscript = "/root/scripts/R_scripts/titanCNA.R"
