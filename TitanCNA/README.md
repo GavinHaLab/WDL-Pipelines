@@ -63,7 +63,7 @@ Minimum thresholds used when extracting read counts from the tumor BAM file at h
 "`TitanCNA.threshold`"- 0.05,  
 "`TitanCNA.outputDirectory`"- "path/to/outdir",
 
-"`TitanCNA.refFasta`"- "path/to/Homo_sapiens_assembly38.fasta",
-"`TitanCNA.snpVCF`"- "path/to/hapmap_3.3.b37.vcf.gz",
-"`TitanCNA.cytobandFile`"- If hg38, then: "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/cytoBand_hg38.txt". If hg19, then "None"  
+"`TitanCNA.refFasta`"- "path/to/Homo_sapiens_assembly38.fasta",     
+"`TitanCNA.snpVCF`"- "path/to/hapmap_3.3.b37.vcf.gz",   
+"`TitanCNA.cytobandFile`"- If hg38, then: "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/cytoBand_hg38.txt". If hg19, then "None"   
 "`TitanCNA.centromere`"- "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"

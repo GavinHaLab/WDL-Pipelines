@@ -1,6 +1,5 @@
 version 1.0
-# these imports are from my github as WDL_Pipelines is private. You can add a link to a file in /fh if you want.
-# keep in mind, if ichor or allele is updated this will need to be changed
+
 import "https://raw.githubusercontent.com/argage/wdl-repo/main/getAlleleCounts/getAlleleCounts.wdl" as getAlleleCounts
 import "https://raw.githubusercontent.com/argage/wdl-repo/main/ichorCNA/ichorCNA.wdl" as ichorCNA
 
@@ -71,8 +70,8 @@ workflow TitanCNA {
         String? alleleModel
 
         #path inputs
-        File refFasta #https://console.cloud.google.com/storage/browser/gcp-public-data--broad-references
-        File snpVCF
+        String refFasta #https://console.cloud.google.com/storage/browser/gcp-public-data--broad-references
+        String snpVCF
         String cytobandFile
         String centromere
     }
@@ -84,7 +83,7 @@ workflow TitanCNA {
     String samTools = "samtools"
     String bcfTools = "bcftools"
 
-    File getAlleleCounts_pyCountScript = "/root/scripts/snakemake/code/countPysam.py"#"https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py"
+    String getAlleleCounts_pyCountScript = "/root/scripts/snakemake/code/countPysam.py"#"https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py"
     String rscript = "/root/scripts/R_scripts/titanCNA.R"
     String combineTitanIchorCNA = "/root/scripts/snakemake/code/combineTITAN-ichor.R"
     String selectSolutionRscript = "/root/scripts/R_scripts/selectSolution.R"
@@ -146,24 +145,45 @@ workflow TitanCNA {
             vcfQ = getAlleleCounts_vcfQuality
     }
 
+    Array[File] concatenatedCounts = getAlleleCounts.concatenatedCounts
+    Array[File] ichorSeg = ichorCNA.segTxt
+    Array[File] ichorBin = ichorCNA.seg
+    Array[File] ichorParam = ichorCNA.params
+    Array[File] corrDepth = ichorCNA.corrDepth
+
     # Call runTitanCNA for each tumor
     scatter (tumor in batchSamples) {
         Array[String] chrs = if tumor.genomeStyle == "NCBI" then ncbiChrs else ucscChrs
 
-        # Assigning the tumor specific file
+        ### because the output for both ichor and allele is an array of files of all of the tumors,
+        ### we need to select correct files for each tumor
+        # I could have done this outside the scatter and append each file to the tumor info?
+        # Like instead of a wdl scatter, it'll be a loop in the filterFiles command block:
+        # - for each file in the array
+        # - find what sample in Samples it belongs to
+        # - append the file to the sample data in Samples
+        # that way we only have to go through the arrays of files once, instead of going through it every time for each sample
+        call filterFiles {
+            input:
+                concatenatedCounts = concatenatedCounts,
+                corrDepth = corrDepth,
+                ichorSeg = ichorSeg,
+                ichorBin = ichorBin,
+                ichorParam = ichorParam,
+                sampleName = tumor.sampleName
+        }
 
-        ###### Workflow error: NEED TO BE FIXED BEFORE RUN #########
-        # So basically what I'm trying to do is grab the file for the specific sample out of the Array[File], but I don't know
-        # how the indexing works with output files in WDL, so idk how to grab the specific one.
-        # [1] "Failed to process workflow definition 'TitanCNA' (reason 1 of 2): Failed to process 'call runTitanCNA' (reason 1 of 2): 
-        # Failed to process expression 'ichorCNA.corrDepth[tumor]' (reason 1 of 1): Type evaluation failed for IndexAccess(IdentifierMemberAccess(ichorCNA,corrDepth,Vector()),IdentifierLookup(tumor)).
-        # Cannot dereference a Array[File] value using a WomCompositeType 
-        # {\n normalBam -> File?\ngenomeStyle -> String\ngenomeBuild -> String\nsampleName -> String\nnormalPanel -> String?\ntumorBai -> File\nsex -> String\ntumorBam -> File\nnormalBai -> File? \n} key"
+        # Assigning the tumor specific file
+        File alleleCountsFile = filterFiles.alleleCountsFile
+        File corrDepthFile = filterFiles.corrDepthFile
+        File ichorSegFile = filterFiles.ichorSegFile
+        File ichorBinFile = filterFiles.ichorBinFile
+        File ichorParamFile = filterFiles.ichorParamFile
         
         call runTitanCNA {
             input:
-                alleleCounts = getAlleleCounts.concatenatedCounts[tumor],
-                corrDepth = ichorCNA.corrDepth[tumor],
+                alleleCounts = alleleCountsFile,
+                corrDepth = corrDepthFile,
                 tumorName = tumor.sampleName, 
                 clustNum = maxClusters, 
                 ploidy = maxPloidy,
@@ -192,9 +212,9 @@ workflow TitanCNA {
                 titanSeg = runTitanCNA.segTxt,
                 titanBin = runTitanCNA.titanOutput,
                 titanParam = runTitanCNA.param,
-                ichorSeg = ichorCNA.segTxt[tumor], 
-                ichorBin = ichorCNA.seg[tumor], 
-                ichorParam = ichorCNA.params[tumor],  
+                ichorSeg = ichorSegFile, 
+                ichorBin = ichorBinFile, 
+                ichorParam = ichorParamFile,  
                 combineScript = combineTitanIchorCNA,
                 libdir = libdir,
                 mergeIchorHOMD = mergeIchorHOMD,
@@ -228,6 +248,44 @@ workflow TitanCNA {
         Array[File] combinedBinFile = combineTitanAndIchorCNA.binFile
         File optimalClusterSolution = selectSolution.optimalClusterSolution
         String copiedSolution = copyOptSolution.copiedSolution
+    }
+}
+
+
+task filterFiles {
+    input {
+        Array[File] concatenatedCounts
+        Array[File] corrDepth
+        Array[File] ichorSeg
+        Array[File] ichorBin
+        Array[File] ichorParam
+        String sampleName
+    }
+
+    command <<<
+        set -e
+        find_file() {
+            local pattern="$1"
+            for file in "$@"; do
+                if [[ "$(basename "$file")" == *$pattern ]]; then
+                    echo "$file"
+                    break
+                fi
+            done
+        }
+        cp "$(find_file "~{sampleName}.tumCounts.txt" "~{sep=' ' concatenatedCounts}")" "~{sampleName}.tumCounts.txt"
+        cp "$(find_file "~{sampleName}.correctedDepth.txt" "~{sep=' ' corrDepth}")" "~{sampleName}.correctedDepth.txt"
+        cp "$(find_file "~{sampleName}.seg.txt" "~{sep=' ' ichorSeg}")" "~{sampleName}.seg.txt"
+        cp "$(find_file "~{sampleName}.cna.seg" "~{sep=' ' ichorBin}")" "~{sampleName}.cna.seg"
+        cp "$(find_file "~{sampleName}.params.txt" "~{sep=' ' ichorParam}")" "~{sampleName}.params.txt"
+    >>>
+
+    output {
+        File alleleCountsFile = "~{sampleName}.tumCounts.txt"
+        File corrDepthFile = "~{sampleName}.correctedDepth.txt"
+        File ichorSegFile = "~{sampleName}.seg.txt"
+        File ichorBinFile = "~{sampleName}.cna.seg"
+        File ichorParamFile = "~{sampleName}.params.txt"
     }
 }
 
