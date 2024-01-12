@@ -123,7 +123,7 @@ task getAlleleCountsByChr {
     }
     output {
         #"results/titan/tumCounts/{tumor}/{tumor}.tumCounts.chr{chr}.txt"
-        File alleleCounts = "~{tumorName}.tumCounts.chr{chr}.txt"
+        File alleleCounts = "~{tumorName}.tumCounts.chr~{chr}.txt"
     }
 }
 
