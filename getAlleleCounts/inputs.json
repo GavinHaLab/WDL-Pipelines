@@ -1,0 +1,23 @@
+{
+    "getAlleleCounts.tumors": [
+        {
+          "sampleName": "ET2504",
+          "sex": "None",      
+          "tumorBam": "/fh/fast/ha_g/projects/NelsonLab/CRPC_patients-pdx_WGS/BAMs_symlink/189.4_ps8n_ET2504.bam",
+          "tumorBai": "https://raw.githubusercontent.com/argage/wdl-repo/main/placeholder.txt",
+          "normalBam": "/fh/fast/ha_g/projects/NelsonLab/CRPC_patients-pdx_WGS/BAMs_symlink/15-003H1_LIVER.bam",
+          "normalBai": "https://raw.githubusercontent.com/argage/wdl-repo/main/placeholder.txt",
+          "normalPanel": "/ichorCNA/inst/extdata/HD_ULP_PoN_hg38_1Mb_normAutosomes_median.rds",
+          "genomeBuild": "hg38", 
+          "genomeStyle": "UCSC"
+        }
+      ],
+    "getAlleleCounts.refFasta": "/fh/fast/ha_g/grp/reference/GRCh38/Broad_bundle_hg38/v0/Homo_sapiens_assembly38.fasta",
+    "getAlleleCounts.snpVCF": "/fh/fast/ha_g/grp/reference/GRCh38/hapmap_3.3.hg38.vcf.gz",
+    "getAlleleCounts.samtools": "samtools",
+    "getAlleleCounts.bcftools": "bcftools",
+    "getAlleleCounts.countScript": "https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py",
+    "getAlleleCounts.baseQ": "10",
+    "getAlleleCounts.mapQ": "10",
+    "getAlleleCounts.vcfQ": "100"
+    }
