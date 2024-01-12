@@ -19,7 +19,7 @@ Minimum thresholds used when extracting read counts from the tumor BAM file at h
 "`getAlleleCounts.baseQ`"- Integer, i.e. 10  
 "`getAlleleCounts.vcfQ`"- Integer, i.e. 100  
 
-Files:
+Files:  
 "`getAlleleCounts.refFasta`"- "path/to/Homo_sapiens_assembly38.fasta"  
 "`getAlleleCounts.snpVCF`"- "path/to/hapmap_3.3.hg38.vcf.gz"  
 "`getAlleleCounts.countScript`"- "https://raw.githubusercontent.com/gavinha/TitanCNA/master/scripts/snakemake/code/countPysam.py"  
@@ -29,6 +29,6 @@ Tool commands:
 "`getAlleleCounts.bcftools`"- "bcftools"
 
 ## Outputs:
-hetSites = "~{tumorName}.chr~{chr}.vcf" for each chr in each tumor  
-alleleCounts = "~{tumorName}.tumCounts.chr{chr}.txt" for each chr in each tumor  
-concatenatedCounts = "~{tumorName}.tumCounts.txt" for each tumor  
+hetSites = "{tumorName}.chr{chr}.vcf" for each chr in each tumor  
+alleleCounts = "{tumorName}.tumCounts.chr{chr}.txt" for each chr in each tumor  
+concatenatedCounts = "{tumorName}.tumCounts.txt" for each tumor  
