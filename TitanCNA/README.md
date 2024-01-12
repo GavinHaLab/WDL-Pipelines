@@ -1,9 +1,9 @@
 # TitanCNA
-`TitanCNA.wdl` is a workflow that uses ichorCNA.wdl and getAlleleCounts.wdl before running TitanCNA.
+`TitanCNA.wdl` is a workflow that uses ichorCNA.wdl and getAlleleCounts.wdl before running TitanCNA. The WDL is currently unfinished
 
 Source code [here](https://github.com/gavinha/TitanCNA/tree/master), where complete info on TitanCNA is held.
 
-## Inputs- wip
+## Inputs
 
 For each sample:
 
@@ -67,3 +67,41 @@ Minimum thresholds used when extracting read counts from the tumor BAM file at h
 "`TitanCNA.snpVCF`"- "path/to/hapmap_3.3.b37.vcf.gz",   
 "`TitanCNA.cytobandFile`"- If hg38, then: "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/cytoBand_hg38.txt". If hg19, then "None"   
 "`TitanCNA.centromere`"- "https://raw.githubusercontent.com/GavinHaLab/ichorCNA/master/inst/extdata/GRCh37.p13_centromere_UCSC-gapTable.txt"
+
+## Instructions
+[For FH users here](#instructions-for-fh-users)
+
+Else:
+You can run it if your workplace already has a Cromwell server configured or by other WDL execution tools.
+
+This is just a rough explanation of what I've tested this with and how you can do it yourself, from a beginner's perspective.
+You can run this on your own if you have [cromwell installed](https://github.com/broadinstitute/cromwell/releases/tag/85) and want to use the `run` or `server` mode.
+
+### Run mode
+To do this, enter this into your terminal:
+
+    java -jar cromwell-XX.jar run TitanCNA.wdl -i inputs.json -o options.json
+
+with `XX` being the version of cromwell you have. Make sure all of your files (WDL, input, options) are in the same folder as the cromwell .jar file.
+
+### Server mode
+[Here is a tutorial on how to run Cromwell's server mode](https://cromwell.readthedocs.io/en/stable/tutorials/ServerMode/). Skip the Five Minute Introduction if you've already downloaded Cromwell and familiar with it.
+
+## Instructions for FH users
+### Running via shiny app
+
+Open the [shiny app](https://cromwellapp.fredhutch.org/) and connect to your cromwell server. Under "Submit a Workflow", upload the WDL and inputs.json. If you wanted to configure the workflow, [take a workflow options file](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options) and upload it as well.
+
+
+### Running via command line
+Log into your chosen node and set the current directory to where your TitanCNA.wdl, inputs.json, and your optional workflow_options.json files are stored. Load the modules necessary:
+
+`module load java`
+
+`module load cromwell`
+
+To execute the WDL, do the following:
+
+`java -jar $EBROOTCROMWELL/cromwell.jar run TitanCNA.wdl -i inputs.json`
+
+To configure the workflow, add `--options workflow_options.json` to the line. [More on workflow options](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options).
