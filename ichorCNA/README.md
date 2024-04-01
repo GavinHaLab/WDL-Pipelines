@@ -106,7 +106,12 @@ Log into your chosen node and set the current directory to where your ichorCNA.w
 
 `module load cromwell`
 
-To execute the WDL, do the following:
+#### To execute the WDL, do the following:
+
+`python3 create_input_json.py input_test_ichorCNA.csv inputs.json`
+
+This command creates a json file with all the samples present in the input _'input_test_ichorCNA.csv'_. Please check the format of the csv file.
+Next, pass the _'inputs.json'_ file to the following command.
 
 `java -jar $EBROOTCROMWELL/cromwell.jar run ichorCNA.wdl -i inputs.json`
 
