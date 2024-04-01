@@ -108,6 +108,11 @@ Log into your chosen node and set the current directory to where your ichorCNA.w
 
 To execute the WDL, do the following:
 
+`python3 create_input_json.py input_test_ichorCNA.csv inputs.json`
+
+This command creates a json file with all th samples present in the input 'input_test_ichorCNA.csv'. Please check the format of the csv file.
+Next, pass the 'inputs.json' file to the following command.
+
 `java -jar $EBROOTCROMWELL/cromwell.jar run ichorCNA.wdl -i inputs.json`
 
 To configure the workflow, add `--options workflow_options.json` to the line. [More on workflow options](https://github.com/GavinHaLab/WDL_Pipelines/tree/main/workflow-options).
