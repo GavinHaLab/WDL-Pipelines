@@ -25,9 +25,7 @@ For more info on the ichorCNA tool, visit the [Github Wiki page for ichorCNA](ht
 ## Configuration
 ### ichorCNA.wdl file
 `taskDocker`: By default fredhutch/ichorcna:v0.5.0 is set, and doesn't need to be changed unless you wish to.\
-
 `taskCPU`: CPU variable for run_ichorCNA. May have to edit `read_counter` CPU in its runtime section.\
-
 `memory`: This may have to be edited in both `read_counter` and `run_ichorCNA` in their runtime sections.
 
 ### inputs.json file
