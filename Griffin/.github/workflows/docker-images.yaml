@@ -30,6 +30,6 @@ jobs:
           password: ${{ secrets.GAVINHALAB_DOCKERHUB_TOKEN }}
       -
         name: Build and Push
-        run: docker build --platform linux/amd64 -t gavinhalab/griffin:1.0.0 -f Griffin/Docker/Dockerfile --push .
+        run: docker build --platform linux/amd64 -t gavinhalab/griffin:1.0.0 -f WDL-Pipelines/Griffin/Docker/Dockerfile --push .
 
 
